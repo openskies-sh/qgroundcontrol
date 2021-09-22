@@ -18,6 +18,8 @@ import QGroundControl.Palette               1.0
 import QGroundControl.MultiVehicleManager   1.0
 import QGroundControl.ScreenTools           1.0
 import QGroundControl.Controllers           1.0
+import com.FTPUpload 1.0
+import "qrc:/qml"
 
 Rectangle {
     id:     _root
@@ -83,6 +85,18 @@ Rectangle {
             onClicked:          _activeVehicle.closeVehicle()
             visible:            _activeVehicle && _communicationLost && currentToolbar === flyViewToolbar
         }
+
+        FTPUploadController{
+            id: controller
+        }
+
+        FTPUpload{
+            id:abc
+            vis:  _activeVehicle
+
+        }
+
+
     }
 
     QGCFlickable {
