@@ -20,6 +20,10 @@ import QGroundControl.ScreenTools   1.0
 import QGroundControl.FlightDisplay 1.0
 import QGroundControl.FlightMap     1.0
 
+import com.DataClass 1.0
+
+import "qrc:/qml/modifications/"
+
 /// @brief Native QML top level window
 /// All properties defined here are visible to all QML pages.
 ApplicationWindow {
@@ -27,6 +31,24 @@ ApplicationWindow {
     minimumWidth:   ScreenTools.isMobile ? Screen.width  : Math.min(ScreenTools.defaultFontPixelWidth * 100, Screen.width)
     minimumHeight:  ScreenTools.isMobile ? Screen.height : Math.min(ScreenTools.defaultFontPixelWidth * 50, Screen.height)
     visible:        true
+
+
+    NpntProcess{
+        id:npnt
+    }
+
+    ConnectServer{
+        id: connect
+        visible: true
+    }
+
+    DataClassController{
+        id:data
+        onTokenGenerated: {
+            connect.visible = false;
+            npnt.visible = true;
+        }
+    }
 
     Component.onCompleted: {
         //-- Full screen on mobile or tiny screens
@@ -74,6 +96,7 @@ ApplicationWindow {
 
     //-------------------------------------------------------------------------
     //-- Global Scope Variables
+
 
     QtObject {
         id: globals

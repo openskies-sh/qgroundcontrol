@@ -86,17 +86,6 @@ Rectangle {
             visible:            _activeVehicle && _communicationLost && currentToolbar === flyViewToolbar
         }
 
-        FTPUploadController{
-            id: controller
-        }
-
-        FTPUpload{
-            id:abc
-            vis:  _activeVehicle
-
-        }
-
-
     }
 
     QGCFlickable {

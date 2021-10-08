@@ -29,9 +29,11 @@ TARGET   = QGroundControl
 TEMPLATE = app
 QGCROOT  = $$PWD
 
-QML_IMPORT_PATH += $$PWD/src/QmlControls
+QML_IMPORT_PATH += $$PWD/src/QmlControls \
+                   $$PWD/modifications
 
-#
+
+
 # OS Specific settings
 #
 
@@ -378,6 +380,7 @@ INCLUDEPATH += .
 
 INCLUDEPATH += \
     include/ui \
+    modifications \
     src \
     src/ADSB \
     src/api \
@@ -425,6 +428,8 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 
 HEADERS += \
     ftpupload.h \
+    modifications/dataclass.h \
+    modifications/npntcontrollerclass.h \
     src/QmlControls/QmlUnitsConversion.h \
     src/Vehicle/VehicleEscStatusFactGroup.h \
     src/api/QGCCorePlugin.h \
@@ -440,6 +445,8 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 
 SOURCES += \
     ftpupload.cpp \
+    modifications/dataclass.cpp \
+    modifications/npntcontrollerclass.cpp \
     src/Vehicle/VehicleEscStatusFactGroup.cc \
     src/api/QGCCorePlugin.cc \
     src/api/QGCOptions.cc \
