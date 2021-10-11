@@ -108,9 +108,10 @@
 #include "ToolStripActionList.h"
 #include "QGCMAVLink.h"
 #include "VehicleLinkManager.h"
+
 #include "ftpupload.h"
-#include "dataclass.h"
 #include "npntcontrollerclass.h"
+#include "connecttoserver.h"
 
 #if defined(QGC_ENABLE_PAIRING)
 #include "PairingManager.h"
@@ -524,8 +525,8 @@ void QGCApplication::_initCommon()
     qmlRegisterType<QGCPalette>              ("QGroundControl.Palette", 1, 0, "QGCPalette");
     qmlRegisterType<QGCMapPalette>           ("QGroundControl.Palette", 1, 0, "QGCMapPalette");
     qmlRegisterType <FTPUpload>              ("com.FTPUpload", 1, 0, "FTPUploadController");
-    qmlRegisterType <DataClass>              ("com.DataClass", 1, 0, "DataClassController");
     qmlRegisterType <NpntControllerClass>    ("com.NpntControllerClass", 1, 0, "NpntController");
+    qmlRegisterType <ConnectToServer>        ("com.ConnectToServer",1,0,"ConnectServerController");
 
     qmlRegisterUncreatableType<Vehicle>                 (kQGCVehicle,                       1, 0, "Vehicle",                    kRefOnly);
     qmlRegisterUncreatableType<MissionManager>          (kQGCVehicle,                       1, 0, "MissionManager",             kRefOnly);

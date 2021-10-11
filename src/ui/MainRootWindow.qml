@@ -20,8 +20,8 @@ import QGroundControl.ScreenTools   1.0
 import QGroundControl.FlightDisplay 1.0
 import QGroundControl.FlightMap     1.0
 
-import com.DataClass 1.0
-
+import com.ConnectToServer 1.0
+import com.NpntControllerClass 1.0
 import "qrc:/qml/modifications/"
 
 /// @brief Native QML top level window
@@ -32,7 +32,6 @@ ApplicationWindow {
     minimumHeight:  ScreenTools.isMobile ? Screen.height : Math.min(ScreenTools.defaultFontPixelWidth * 50, Screen.height)
     visible:        true
 
-
     NpntProcess{
         id:npnt
     }
@@ -42,12 +41,22 @@ ApplicationWindow {
         visible: true
     }
 
-    DataClassController{
-        id:data
-        onTokenGenerated: {
+    ConnectServerController{
+        id:connectController
+        onConnectionSuccessful: {
+
             connect.visible = false;
             npnt.visible = true;
         }
+    }
+
+    NpntController{
+        id:npntcontroller
+        onCheck1: npnt.check1 = true;
+        onCheck2: npnt.check2 = true;
+        onCheck3: npnt.check3 = true;
+        onCheck4: npnt.check4 = true;
+        onNpntComplete: npnt.visible = false;
     }
 
     Component.onCompleted: {

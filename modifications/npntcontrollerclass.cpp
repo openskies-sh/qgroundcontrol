@@ -2,6 +2,8 @@
 
 NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
 {
+    keyRotating = false;
+    m_keyController         = new KeyRotationController();
     _dataClass              = qgcApp()->getDataClass();
     m_url                   = qgcApp()->getDataClass()->getURL();
     timer1                  = new QTimer(this);
@@ -13,17 +15,10 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
     connect(_dataClass, SIGNAL(droneNotActive()), this, SLOT(boardNotActive()));
     connect(_dataClass, SIGNAL(droneActive()), this, SLOT(boardIsActive()));
     connect(_dataClass, SIGNAL(droneActive()), this, SLOT(boardIsActive()));
+    connect(_dataClass  , SIGNAL(keyUploadFailed()) , this, SLOT(KeyRotateFailed()));
+    connect(_dataClass  , SIGNAL(keyUploadSuccessful()), this, SLOT(keyRotatedOK()));
 }
 
-int NpntControllerClass::ErrorMessageBox(QString errorMessage)
-{
-    QMessageBox msgBox;
-    msgBox.setText("Error: ");
-    msgBox.setInformativeText(errorMessage);
-    msgBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
-    msgBox.setDefaultButton(QMessageBox::Ok);
-    return msgBox.exec();
-}
 
 bool NpntControllerClass::deviceConnected()
 {
@@ -51,11 +46,35 @@ void NpntControllerClass::boardIsActive()
     timer2->stop();
     emit check2();
     // Initiate Next Step
-   // firmwareCheck();
+    keyRotated();
 }
 
 void NpntControllerClass::boardNotActive()
 {
     timer2->stop();
-    ErrorMessageBox("                    Your Drone is not Registered                     ");
+}
+
+bool NpntControllerClass::keyRotated()
+{
+    if(!keyRotating)
+    {
+        keyRotating = true;
+        qInfo()<<"Starting Key Rotation Step #1";
+        m_keyController->startKeyRotation(m_url+"pki/credentials/");
+        return true;
+    }
+    return false;
+}
+void NpntControllerClass::keyRotatedOK()
+{
+
+    keyRotating = false;
+    emit check4();
+    emit npntComplete();
+}
+
+void NpntControllerClass::KeyRotateFailed()
+{
+    keyRotating = false;
+    return;
 }

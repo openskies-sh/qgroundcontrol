@@ -4,7 +4,8 @@
 #include <QObject>
 #include "QGCApplication.h"
 #include "QTimer"
-#include <QMessageBox>
+#include "QThread"
+#include "keyrotationcontroller.h"
 
 class NpntControllerClass : public QObject
 {
@@ -17,20 +18,25 @@ signals:
       void check2();
       void check3();
       void check4();
+      void npntComplete();
 
 public slots:
-       Q_INVOKABLE bool deviceConnected();
+      Q_INVOKABLE bool deviceConnected();
       void boardIsActive();
       void boardNotActive();
 
 private slots:
       bool checkIsBoardActive();
-      int ErrorMessageBox(QString errorMessage);
+      bool keyRotated();
+      void keyRotatedOK();
+      void KeyRotateFailed();
 
 private:
     QTimer *timer1, *timer2, *timer3, *timer4;
     DataClass* _dataClass;
     QString m_url;
+    bool keyRotating;
+    KeyRotationController* m_keyController;
 };
 
 #endif // NPNTCONTROLLERCLASS_H

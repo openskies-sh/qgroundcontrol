@@ -4,7 +4,6 @@ import QtQuick.Controls 2.0
 import QtQuick.Dialogs 1.1
 
 import QGroundControl 1.0
-import com.NpntControllerClass 1.0
 
 
  Rectangle{
@@ -13,28 +12,17 @@ import com.NpntControllerClass 1.0
         property bool check2:false
         property bool check3:false
         property bool check4:false
-        property bool vis: false
         anchors.fill: parent
         color: "lightgrey"
-        visible: true
         z:1
         Component.onCompleted: {
             npntcontroller.deviceConnected();
         }
-
         function resetChecks(){
             check1 = false;
             check2 = false;
             check3 = false;
             check4 = false;
-        }
-
-        NpntController{
-            id:npntcontroller
-            onCheck1: myrect.check1 = true;
-            onCheck2: myrect.check2 = true;
-            onCheck3: myrect.check3 = true;
-            onCheck4: myrect.check4 = true;
         }
 
     Rectangle{

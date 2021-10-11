@@ -9,6 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QFile>
 
 class DataClass : public QObject
 {
@@ -23,20 +24,27 @@ signals:
     void tokenNotGenerated();
     void droneActive();
     void droneNotActive();
+    void keyUploadFailed();
+    void keyUploadSuccessful();
+
 
 public slots:
     void generateToken();
     void checkDroneStatus(QString location);
+    void uploadKeyToServer(QString location, QString pathOfKey);
 
 private slots:
     void readyReadToken();
     void readyReadDroneStatus();
+    void readyReadPublicKey();
 
 private:
 
     struct Drone
     {
         QString serialId;
+        QString uuid;
+        QString publicKey;
         bool status;
         bool npntCheck;
     } drone;

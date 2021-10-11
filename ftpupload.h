@@ -4,7 +4,6 @@
 #include <QObject>
 #include "MultiVehicleManager.h"
 #include "QGCApplication.h"
-#include "MockLink.h"
 #include "FTPManager.h"
 
 class FTPUpload:public QObject

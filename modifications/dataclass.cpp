@@ -2,7 +2,20 @@
 
 DataClass::DataClass(QObject *parent) : QObject(parent)
 {
-      this->generateToken();
+    this->generateToken();
+}
+
+bool DataClass::droneIDChanged(QString vehicleID){
+
+    if(drone.serialId  == vehicleID)
+    {
+        return  false;
+    }
+    else
+    {
+        drone.serialId = vehicleID;
+        return true;
+    }
 }
 
 //TOKEN REQUEST
@@ -33,20 +46,6 @@ void DataClass::readyReadToken()
 }
 
 //DRONE STATUS CHECK
-
-bool DataClass::droneIDChanged(QString vehicleID){
-
-    if(drone.serialId  == vehicleID)
-    {
-        return  false;
-    }
-    else
-    {
-        drone.serialId = vehicleID;
-        return true;
-    }
-}
-
 void DataClass::checkDroneStatus(QString location)
 {
     location = location + drone.serialId;
@@ -68,6 +67,7 @@ void DataClass::readyReadDroneStatus()
     QJsonDocument jsonResponse = QJsonDocument::fromJson(replyStr.toUtf8());
     QJsonObject jsonObject = jsonResponse.object();
     drone.status = jsonObject["status"].toInt();
+    drone.uuid = jsonObject["id"].toString();
 
     if(drone.status)
     {
@@ -77,5 +77,59 @@ void DataClass::readyReadDroneStatus()
     {
         emit droneNotActive();
     }
+}
+
+//PUBLIC KEY ROTATION
+void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
+{
+    qInfo()<<"Entered the upload key to server function";
+    qInfo()<<"Reading file from "<<pathOfKey;
+    qInfo()<<"Uploading file to "<<location;
+    QString contentOfKey;
+    QFile file(pathOfKey);
+    file.open(QIODevice::ReadOnly);
+    contentOfKey = file.readAll();
+    file.close();
+    contentOfKey.chop(1);
+    drone.publicKey = contentOfKey;
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
+    request.setRawHeader("Content-Type", "application/json");
+    QByteArray postData;
+    postData.append("{\"token\":\"");
+    postData.append(drone.publicKey);
+    postData.append("\",\"name\":\"");
+    postData.append("Public Key");
+    postData.append("\",\"token_type\":\"");
+    postData.append("0");
+    postData.append("\",\"association\":\"");
+    postData.append("3");
+    postData.append("\",\"is_active\":\"");
+    postData.append("true");
+    postData.append("\",\"aircraft\":\"");
+    postData.append(drone.uuid);
+    postData.append("\"}");
+
+    qInfo()<<"DataPosted "<<postData;
+    QNetworkReply* reply = manager.post(request, postData);
+    qInfo()<<"REQUEST SENT";
+    connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadPublicKey);
+
+}
+
+void DataClass::readyReadPublicKey()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    qInfo()<<statusCode;
+    if(statusCode == 201 || statusCode == 200)
+    {
+        emit keyUploadSuccessful();
+    }
+    else
+    {
+        emit keyUploadFailed();
+    }
+
 }
 
