@@ -95,20 +95,16 @@ void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
     request.setRawHeader("Content-Type", "application/json");
-    QByteArray postData;
-    postData.append("{\"token\":\"");
-    postData.append(drone.publicKey);
-    postData.append("\",\"name\":\"");
-    postData.append("Public Key");
-    postData.append("\",\"token_type\":\"");
-    postData.append("0");
-    postData.append("\",\"association\":\"");
-    postData.append("3");
-    postData.append("\",\"is_active\":\"");
-    postData.append("true");
-    postData.append("\",\"aircraft\":\"");
-    postData.append(drone.uuid);
-    postData.append("\"}");
+
+    QJsonObject obj;
+    obj["token"] = drone.publicKey;
+    obj["name"] = "Public Key";
+    obj["token_type"] = "0";
+    obj["association"] = "3";
+    obj["is_active"] = "true";
+    obj["aircraft"] = drone.uuid;
+    QJsonDocument doc(obj);
+    QByteArray postData = doc.toJson();
 
     qInfo()<<"DataPosted "<<postData;
     QNetworkReply* reply = manager.post(request, postData);
@@ -120,8 +116,10 @@ void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
 void DataClass::readyReadPublicKey()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
     qInfo()<<statusCode;
+    qInfo()<<replyStr;
     if(statusCode == 201 || statusCode == 200)
     {
         emit keyUploadSuccessful();
@@ -132,4 +130,51 @@ void DataClass::readyReadPublicKey()
     }
 
 }
+// UPLOAD FLIGHT PLAN
+void DataClass::uploadPlanToServer(QString location, QString pathOfPlan)
+{
+    qInfo()<<location;
+    qInfo()<<pathOfPlan;
+    QString contentOfPlan;
+    QFile file(pathOfPlan);
+    file.open(QIODevice::ReadOnly);
+    contentOfPlan = file.readAll();
+    file.close();
+    contentOfPlan.chop(1);
+    contentOfPlan.remove("\n");
+    contentOfPlan = contentOfPlan.simplified();
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
+    request.setRawHeader("Content-Type", "application/json");
+    QJsonObject obj;
+    obj["name"] = "test_new";
+    obj["kml"] = contentOfPlan;
+    obj["start_datetime"] = "2019-08-24T14:15:22";
+    obj["end_datetime"] = "2019-08-24T14:15:22";
+    QJsonDocument doc(obj);
+    QByteArray postData = doc.toJson();
+    qInfo()<<"DataPosted "<<postData;
+    QNetworkReply* reply = manager.post(request, postData);
+    qInfo()<<"REQUEST SENT";
+    connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadFlightPlan);
+
+}
+void DataClass::readyReadFlightPlan()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    qInfo()<<statusCode;
+    qInfo()<<replyStr;
+    if(statusCode == 201 || statusCode == 200)
+    {
+        emit planUploadSuccessful();
+    }
+    else
+    {
+        emit planUploadFailed();
+    }
+
+}
+
 

@@ -19,7 +19,6 @@ import QGroundControl.Controls      1.0
 import QGroundControl.ScreenTools   1.0
 import QGroundControl.FlightDisplay 1.0
 import QGroundControl.FlightMap     1.0
-
 import com.ConnectToServer 1.0
 import com.NpntControllerClass 1.0
 import "qrc:/qml/modifications/"

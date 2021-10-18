@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFile>
+#include <qregexp.h>
 
 class DataClass : public QObject
 {
@@ -26,17 +27,21 @@ signals:
     void droneNotActive();
     void keyUploadFailed();
     void keyUploadSuccessful();
+    void planUploadSuccessful();
+    void planUploadFailed();
 
 
 public slots:
     void generateToken();
     void checkDroneStatus(QString location);
     void uploadKeyToServer(QString location, QString pathOfKey);
+    void uploadPlanToServer(QString location, QString pathOfPlan);
 
 private slots:
     void readyReadToken();
     void readyReadDroneStatus();
     void readyReadPublicKey();
+    void readyReadFlightPlan();
 
 private:
 

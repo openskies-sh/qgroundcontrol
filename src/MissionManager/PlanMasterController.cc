@@ -46,6 +46,8 @@ PlanMasterController::PlanMasterController(QObject* parent)
     , _rallyPointController (this)
 {
     _commonInit();
+    _dataClass              = qgcApp()->getDataClass();
+    m_url                   = qgcApp()->getDataClass()->getURL();
 }
 
 #ifdef QT_DEBUG
@@ -432,6 +434,11 @@ void PlanMasterController::loadFromFile(const QString& filename)
     if (!offline()) {
         setDirty(true);
     }
+}
+
+void PlanMasterController::uploadKMLToServer(const QString &filename)
+{
+    _dataClass->uploadPlanToServer(m_url+"gcs/flight-plans",filename);
 }
 
 QJsonDocument PlanMasterController::saveToJson()
