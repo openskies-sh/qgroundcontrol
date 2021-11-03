@@ -23,13 +23,11 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
 bool NpntControllerClass::deviceConnected()
 {
     if(!qgcApp()->toolbox()->multiVehicleManager()->activeVehicleAvailable()){
-        // No active Board Connected
-        qInfo() << "Trying To find the board";
         timer1->start(500);
         return false;
     }
     timer1->stop();
-    emit check1();
+    emit hardwareConnected();
     checkIsBoardActive();
     return true;
 }
@@ -44,8 +42,7 @@ bool NpntControllerClass::checkIsBoardActive()
 void NpntControllerClass::boardIsActive()
 {
     timer2->stop();
-    emit check2();
-    // Initiate Next Step
+    emit droneIsActive();
     keyRotated();
 }
 
@@ -59,7 +56,6 @@ bool NpntControllerClass::keyRotated()
     if(!keyRotating)
     {
         keyRotating = true;
-        qInfo()<<"Starting Key Rotation Step #1";
         m_keyController->startKeyRotation(m_url+"pki/credentials/");
         return true;
     }
@@ -69,7 +65,7 @@ void NpntControllerClass::keyRotatedOK()
 {
 
     keyRotating = false;
-    emit check4();
+    emit keyRotationCompleted();
     emit npntComplete();
 }
 

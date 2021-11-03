@@ -8,10 +8,9 @@ import QGroundControl 1.0
 
  Rectangle{
         id:myrect
-        property bool check1:false
-        property bool check2:false
-        property bool check3:false
-        property bool check4:false
+        property bool hardwareConnected:false
+        property bool droneIsActive:false
+        property bool keyRotationCompleted:false
         anchors.fill: parent
         color: "lightgrey"
         z:1
@@ -19,10 +18,9 @@ import QGroundControl 1.0
             npntcontroller.deviceConnected();
         }
         function resetChecks(){
-            check1 = false;
-            check2 = false;
-            check3 = false;
-            check4 = false;
+            hardwareConnected = false;
+            droneIsActive = false;
+            keyRotationCompleted = false;
         }
 
     Rectangle{
@@ -55,7 +53,7 @@ import QGroundControl 1.0
             Column{
                     CheckBox {
                         id: c1
-                        checked:myrect.check1
+                        checked:myrect.hardwareConnected
                         text: qsTr("Hardware Connected")
                         font.pixelSize: (rect1.width/25 + rect1.height/25 )/2
                         checkable:false
@@ -65,25 +63,16 @@ import QGroundControl 1.0
                     }
                     CheckBox {
                         id:c2
-                        checked: myrect.check2
+                        checked: myrect.droneIsActive
                         text: qsTr("Check if Drone is Active")
                         font.pixelSize: (rect1.width/25 + rect1.height/25 )/2
                         checkable:false
                         indicator.width:rect1.width/20
                         indicator.height:rect1.height/20
                     }
-//                    CheckBox {
-//                        id:c3
-//                        checked: myrect.check3
-//                        text: qsTr("Check for Firmware Upgrades")
-//                        font.pixelSize: (rect1.width/25 + rect1.height/25 )/2
-//                        checkable:false
-//                        indicator.width:rect1.width/20
-//                        indicator.height:rect1.height/20
-//                    }
                     CheckBox {
-                        id:c4
-                        checked: myrect.check4
+                        id:c3
+                        checked: myrect.keyRotationCompleted
                         text: qsTr("Starting Key Rotation")
                         checkable:false
                         font.pixelSize: (rect1.width/25 + rect1.height/25 )/2

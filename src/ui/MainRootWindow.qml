@@ -51,11 +51,11 @@ ApplicationWindow {
 
     NpntController{
         id:npntcontroller
-        onCheck1: npnt.check1 = true;
-        onCheck2: npnt.check2 = true;
-        onCheck3: npnt.check3 = true;
-        onCheck4: npnt.check4 = true;
+        onHardwareConnected: npnt.hardwareConnected = true;
+        onDroneIsActive: npnt.droneIsActive = true;
+        onKeyRotationCompleted:npnt.keyRotationCompleted = true;
         onNpntComplete: npnt.visible = false;
+
     }
 
     Component.onCompleted: {

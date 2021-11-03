@@ -50,7 +50,6 @@ void DataClass::checkDroneStatus(QString location)
 {
     location = location + drone.serialId;
     if(drone.serialId.size() == 0){
-        qInfo() << "Vehicle Id not Retrieved";
         return;
     }
     QNetworkRequest request = QNetworkRequest(location);
@@ -82,9 +81,6 @@ void DataClass::readyReadDroneStatus()
 //PUBLIC KEY ROTATION
 void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
 {
-    qInfo()<<"Entered the upload key to server function";
-    qInfo()<<"Reading file from "<<pathOfKey;
-    qInfo()<<"Uploading file to "<<location;
     QString contentOfKey;
     QFile file(pathOfKey);
     file.open(QIODevice::ReadOnly);
@@ -106,9 +102,7 @@ void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
     QJsonDocument doc(obj);
     QByteArray postData = doc.toJson();
 
-    qInfo()<<"DataPosted "<<postData;
     QNetworkReply* reply = manager.post(request, postData);
-    qInfo()<<"REQUEST SENT";
     connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadPublicKey);
 
 }
@@ -118,8 +112,6 @@ void DataClass::readyReadPublicKey()
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    qInfo()<<statusCode;
-    qInfo()<<replyStr;
     if(statusCode == 201 || statusCode == 200)
     {
         emit keyUploadSuccessful();
@@ -133,8 +125,6 @@ void DataClass::readyReadPublicKey()
 // UPLOAD FLIGHT PLAN
 void DataClass::uploadPlanToServer(QString location, QString pathOfPlan)
 {
-    qInfo()<<location;
-    qInfo()<<pathOfPlan;
     QString contentOfPlan;
     QFile file(pathOfPlan);
     file.open(QIODevice::ReadOnly);
@@ -153,9 +143,7 @@ void DataClass::uploadPlanToServer(QString location, QString pathOfPlan)
     obj["end_datetime"] = "2019-08-24T14:15:22";
     QJsonDocument doc(obj);
     QByteArray postData = doc.toJson();
-    qInfo()<<"DataPosted "<<postData;
     QNetworkReply* reply = manager.post(request, postData);
-    qInfo()<<"REQUEST SENT";
     connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadFlightPlan);
 
 }
@@ -164,8 +152,6 @@ void DataClass::readyReadFlightPlan()
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    qInfo()<<statusCode;
-    qInfo()<<replyStr;
     if(statusCode == 201 || statusCode == 200)
     {
         emit planUploadSuccessful();

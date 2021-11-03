@@ -17,7 +17,7 @@ Rectangle{
         id:myrect
         anchors.fill: parent
         z:1
-        color: "lightgrey"
+        color:"lightgrey"
         visible: true
         Text {
            id: load

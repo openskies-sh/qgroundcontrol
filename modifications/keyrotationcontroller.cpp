@@ -24,7 +24,6 @@ bool KeyRotationController::fetchKeyFromDrone()
     connect(ftpManager, SIGNAL(downloadComplete(const QString& , const QString& )), this, SLOT(downloadComplete(const QString&, const QString&)));
 
     if(!ftpManager->download(pathOnBoard + "/" + keyFileName, pathOnSystem)){
-        qInfo() << " Cannot Download Key.pem";
         return false;
     }
     return true;
@@ -32,7 +31,6 @@ bool KeyRotationController::fetchKeyFromDrone()
 
 bool KeyRotationController::uploadKeyToServer()
 {
-    qInfo() << "Uploading key" << pathOnSystem + "/" + keyFileName;
     uploading = true;
     DataClass* _dataClass = qgcApp()->getDataClass();
     _dataClass->uploadKeyToServer(url, pathOnSystem + "/" + keyFileName);
@@ -41,7 +39,6 @@ bool KeyRotationController::uploadKeyToServer()
 
 void KeyRotationController::downloadComplete(const QString &path, const QString &error)
 {
-    qInfo()<<"File Feteched From Drone and Saved to "<<path<<"Step#2";
     if(error.size() == 0 && !uploading){
         uploadKeyToServer();
     }

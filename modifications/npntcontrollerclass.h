@@ -14,10 +14,9 @@ public:
     explicit NpntControllerClass(QObject *parent = nullptr);
 
 signals:
-      void check1();
-      void check2();
-      void check3();
-      void check4();
+      void hardwareConnected();
+      void droneIsActive();
+      void keyRotationCompleted();
       void npntComplete();
 
 public slots:
@@ -32,7 +31,7 @@ private slots:
       void KeyRotateFailed();
 
 private:
-    QTimer *timer1, *timer2, *timer3, *timer4;
+    QTimer *timer1, *timer2, *timer3;
     DataClass* _dataClass;
     QString m_url;
     bool keyRotating;
