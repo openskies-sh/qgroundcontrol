@@ -6,18 +6,21 @@
 #include "QTimer"
 #include "QThread"
 #include "keyrotationcontroller.h"
+#include "dictionary.h"
+#include "LinkManager.h"
+
 
 class NpntControllerClass : public QObject
 {
     Q_OBJECT
 public:
     explicit NpntControllerClass(QObject *parent = nullptr);
-
 signals:
       void hardwareConnected();
       void droneIsActive();
       void keyRotationCompleted();
       void npntComplete();
+      void hardwareChangeDetected();
 
 public slots:
       Q_INVOKABLE bool deviceConnected();
@@ -29,6 +32,7 @@ private slots:
       bool keyRotated();
       void keyRotatedOK();
       void KeyRotateFailed();
+      void hardwareChanged();
 
 private:
     QTimer *timer1, *timer2, *timer3;

@@ -21,6 +21,7 @@ private slots:
     bool fetchKeyFromDrone();
     bool uploadKeyToServer();
     void downloadComplete(const QString &path, const QString &error);
+    void keyUploadToServerNotInProgress();
 
 private:
     QString pathOnBoard;

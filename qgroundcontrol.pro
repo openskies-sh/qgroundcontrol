@@ -430,6 +430,7 @@ HEADERS += \
     ftpupload.h \
     modifications/connecttoserver.h \
     modifications/dataclass.h \
+    modifications/dictionary.h \
     modifications/keyrotationcontroller.h \
     modifications/npntcontrollerclass.h \
     src/QmlControls/QmlUnitsConversion.h \

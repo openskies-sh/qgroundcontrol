@@ -43,3 +43,9 @@ void KeyRotationController::downloadComplete(const QString &path, const QString 
         uploadKeyToServer();
     }
 }
+
+void KeyRotationController::keyUploadToServerNotInProgress()
+{
+    uploading = false;
+}
+
