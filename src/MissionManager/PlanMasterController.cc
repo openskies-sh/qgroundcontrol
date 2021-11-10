@@ -27,6 +27,7 @@
 #include <QDomDocument>
 #include <QJsonDocument>
 #include <QFileInfo>
+#include "dictionary.h"
 
 QGC_LOGGING_CATEGORY(PlanMasterControllerLog, "PlanMasterControllerLog")
 
@@ -81,7 +82,6 @@ void PlanMasterController::_commonInit(void)
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
 }
-
 
 PlanMasterController::~PlanMasterController()
 {
@@ -438,7 +438,7 @@ void PlanMasterController::loadFromFile(const QString& filename)
 
 void PlanMasterController::uploadKMLToServer(const QString &filename)
 {
-    _dataClass->uploadPlanToServer(m_url+"gcs/flight-plans",filename);
+    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl,filename);
 }
 
 QJsonDocument PlanMasterController::saveToJson()

@@ -11,6 +11,7 @@ KeyRotationController::KeyRotationController(QObject *parent) : QObject(parent)
 void KeyRotationController::startKeyRotation(QString URL)
 {
     url = URL;
+    qDebug()<<"keyFetch"<<fetchKeyFromDrone();
     if(!fetchKeyFromDrone()){
         return;
     }
@@ -43,3 +44,9 @@ void KeyRotationController::downloadComplete(const QString &path, const QString 
         uploadKeyToServer();
     }
 }
+
+void KeyRotationController::keyUploadToServerNotInProgress()
+{
+    uploading = false;
+}
+

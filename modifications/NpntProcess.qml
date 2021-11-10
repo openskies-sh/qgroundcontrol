@@ -17,11 +17,6 @@ import QGroundControl 1.0
         Component.onCompleted: {
             npntcontroller.deviceConnected();
         }
-        function resetChecks(){
-            hardwareConnected = false;
-            droneIsActive = false;
-            keyRotationCompleted = false;
-        }
 
     Rectangle{
         id: rect1

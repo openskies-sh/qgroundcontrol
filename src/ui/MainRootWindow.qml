@@ -33,6 +33,7 @@ ApplicationWindow {
 
     NpntProcess{
         id:npnt
+
     }
 
     ConnectServer{
@@ -43,7 +44,6 @@ ApplicationWindow {
     ConnectServerController{
         id:connectController
         onConnectionSuccessful: {
-
             connect.visible = false;
             npnt.visible = true;
         }
@@ -55,6 +55,13 @@ ApplicationWindow {
         onDroneIsActive: npnt.droneIsActive = true;
         onKeyRotationCompleted:npnt.keyRotationCompleted = true;
         onNpntComplete: npnt.visible = false;
+        onHardwareChangeDetected:{
+            npnt.hardwareConnected = false;
+            npnt.droneIsActive = false;
+            npnt.keyRotationCompleted = false;
+            npnt.visible = true;
+            console.log("Switched to NPNT init page and resetted the checks");
+        }
 
     }
 

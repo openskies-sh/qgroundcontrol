@@ -5,15 +5,16 @@ DataClass::DataClass(QObject *parent) : QObject(parent)
     this->generateToken();
 }
 
-bool DataClass::droneIDChanged(QString vehicleID){
+bool DataClass::checkdroneIDChanged(QString vehicleID){
 
     if(drone.serialId  == vehicleID)
     {
+        emit droneIDChanged();
         return  false;
     }
     else
     {
-        drone.serialId = vehicleID;
+        drone.serialId = vehicleID;  
         return true;
     }
 }
@@ -147,6 +148,7 @@ void DataClass::uploadPlanToServer(QString location, QString pathOfPlan)
     connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadFlightPlan);
 
 }
+
 void DataClass::readyReadFlightPlan()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
@@ -163,4 +165,12 @@ void DataClass::readyReadFlightPlan()
 
 }
 
+//Clear Drone Data
+void DataClass::clearDroneData()
+{
+    drone.npntCheck = false;
+    drone.uuid.clear();
+    drone.publicKey.clear();
+    drone.serialId.clear();
+}
 

@@ -875,11 +875,16 @@ void Vehicle::_handleStatusText(mavlink_message_t& message)
     b[b.length()-1] = '\0';
     messageText = QString(b);
     droneNumber = statustext.text;
-    if(droneNumber.contains("PX4v") || droneNumber.contains("Pixhawk") || droneNumber.contains("fmuv") || droneNumber.contains("CubeOrange")){
-        droneNumber = droneNumber.mid(droneNumber.indexOf(" ",Qt::CaseInsensitive),-1);
-        droneNumber = droneNumber.simplified();
-        droneNumber.replace( " ", "" );
-        qgcApp()->getDataClass()->droneIDChanged(droneNumber);
+    for(int i=0;i<supportedflightControllers.length();i++)
+    {
+        if(droneNumber.contains(supportedflightControllers[i]))
+        {
+            droneNumber = droneNumber.mid(droneNumber.indexOf(" ",Qt::CaseInsensitive),-1);
+            droneNumber = droneNumber.simplified();
+            droneNumber.replace( " ", "" );
+            qgcApp()->getDataClass()->checkdroneIDChanged(droneNumber);
+            break;
+        }
     }
 
     bool includesNullTerminator = messageText.length() < MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN;

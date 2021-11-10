@@ -18,7 +18,7 @@ class DataClass : public QObject
 public:
     explicit DataClass(QObject *parent = nullptr);
     QString getURL(){return serverURL;}
-    bool droneIDChanged(QString vehicleID);
+    bool checkdroneIDChanged(QString vehicleID);
 
 signals:
     void tokenGenerated();
@@ -29,6 +29,7 @@ signals:
     void keyUploadSuccessful();
     void planUploadSuccessful();
     void planUploadFailed();
+    void droneIDChanged();
 
 
 public slots:
@@ -36,6 +37,7 @@ public slots:
     void checkDroneStatus(QString location);
     void uploadKeyToServer(QString location, QString pathOfKey);
     void uploadPlanToServer(QString location, QString pathOfPlan);
+    void clearDroneData();
 
 private slots:
     void readyReadToken();
