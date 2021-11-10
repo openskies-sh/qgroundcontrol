@@ -61,7 +61,6 @@ ApplicationWindow {
             npnt.keyRotationCompleted = false;
             npnt.visible = true;
         }
-
     }
 
     Component.onCompleted: {

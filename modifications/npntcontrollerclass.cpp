@@ -18,6 +18,7 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
     connect(_dataClass  , SIGNAL(keyUploadFailed()) , this, SLOT(KeyRotateFailed()));
     connect(_dataClass  , SIGNAL(keyUploadSuccessful()), this, SLOT(keyRotatedOK()));
     connect(_dataClass  , SIGNAL(keyUploadSuccessful()), m_keyController, SLOT(keyUploadToServerNotInProgress()));
+    connect(_dataClass  , SIGNAL(keyUploadFailed()), m_keyController, SLOT(keyUploadToServerNotInProgress()));
     connect(_dataClass  , SIGNAL(droneIDChanged()), this, SLOT(hardwareChanged()));
 }
 
