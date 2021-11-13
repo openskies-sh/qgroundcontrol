@@ -2,9 +2,6 @@
 
 KeyRotationController::KeyRotationController(QObject *parent) : QObject(parent)
 {
-    pathOnBoard = "APM";
-    keyFileName = "key.pem";
-    pathOnSystem = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     uploading = false;
 }
 
@@ -20,10 +17,8 @@ bool KeyRotationController::fetchKeyFromDrone()
 {
 
     FTPManager* ftpManager = qgcApp()->toolbox()->multiVehicleManager()->activeVehicle()->ftpManager();
-    QString a, b;
     connect(ftpManager, SIGNAL(downloadComplete(const QString& , const QString& )), this, SLOT(downloadComplete(const QString&, const QString&)));
-
-    if(!ftpManager->download(pathOnBoard + "/" + keyFileName, pathOnSystem)){
+    if(!ftpManager->download(pathOnBoardForPublicKeyDownload + "/" + publicKeyFilename, pathOnSystemForDronePulicKeyStorage)){
         return false;
     }
     return true;
@@ -33,7 +28,7 @@ bool KeyRotationController::uploadKeyToServer()
 {
     uploading = true;
     DataClass* _dataClass = qgcApp()->getDataClass();
-    _dataClass->uploadKeyToServer(url, pathOnSystem + "/" + keyFileName);
+    _dataClass->uploadKeyToServer(url, pathOnSystemForDronePulicKeyStorage + "/" + publicKeyFilename);
     return true;
 }
 

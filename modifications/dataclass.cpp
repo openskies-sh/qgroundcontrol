@@ -68,7 +68,6 @@ void DataClass::readyReadDroneStatus()
     QJsonObject jsonObject = jsonResponse.object();
     drone.status = jsonObject["status"].toInt();
     drone.uuid = jsonObject["id"].toString();
-
     if(drone.status)
     {
         emit droneActive();

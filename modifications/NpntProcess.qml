@@ -15,7 +15,7 @@ import QGroundControl 1.0
         color: "lightgrey"
         z:1
         Component.onCompleted: {
-            npntcontroller.deviceConnected();
+            npntcontroller.checkdeviceConnected();
         }
 
     Rectangle{

@@ -11,7 +11,7 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
     timer2                  = new QTimer(this);
     timer3                  = new QTimer(this);
 
-    connect(timer1  , SIGNAL(timeout()), this, SLOT(deviceConnected()));
+    connect(timer1  , SIGNAL(timeout()), this, SLOT(checkdeviceConnected()));
     connect(timer2  , SIGNAL(timeout()), this, SLOT(checkIsBoardActive()));
     connect(_dataClass, SIGNAL(droneNotActive()), this, SLOT(boardNotActive()));
     connect(_dataClass, SIGNAL(droneActive()), this, SLOT(boardIsActive()));
@@ -23,7 +23,7 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
 }
 
 
-bool NpntControllerClass::deviceConnected()
+bool NpntControllerClass::checkdeviceConnected()
 {
     if(!qgcApp()->toolbox()->multiVehicleManager()->activeVehicleAvailable()){
         timer1->start(500);
@@ -46,7 +46,7 @@ void NpntControllerClass::boardIsActive()
 {
     timer2->stop();
     emit droneIsActive();
-    keyRotated();
+    keyRotation();
 }
 
 void NpntControllerClass::boardNotActive()
@@ -54,7 +54,7 @@ void NpntControllerClass::boardNotActive()
     timer2->stop();
 }
 
-bool NpntControllerClass::keyRotated()
+bool NpntControllerClass::keyRotation()
 {
     if(!keyRotating)
     {
@@ -81,5 +81,5 @@ void NpntControllerClass::KeyRotateFailed()
 void NpntControllerClass::hardwareChanged()
 {
     emit hardwareChangeDetected();
-    deviceConnected();
+    checkdeviceConnected();
 }
