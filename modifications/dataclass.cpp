@@ -51,7 +51,7 @@ void DataClass::checkDroneStatus(QString location)
 {
     location = location + drone.serialId;
     if(drone.serialId.size() == 0){
-        return;
+        //dhaka return;
     }
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
