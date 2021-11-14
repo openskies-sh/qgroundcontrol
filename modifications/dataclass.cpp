@@ -1,7 +1,44 @@
 #include "dataclass.h"
+#include "QXmlStreamReader"
 
 DataClass::DataClass(QObject *parent) : QObject(parent)
 {
+    QFile file(configurationFilePath);
+    if(file.open(QIODevice::ReadOnly)) {
+            QXmlStreamReader reader;
+            reader.setDevice(&file);
+            reader.readNext();
+            if (reader.readNextStartElement()) {
+                if (reader.name() == "configuration"){
+                    while(reader.readNextStartElement()){
+                        if(reader.name() == "clientId"){
+                            clientId = reader.readElementText();
+                        }
+                        else if(reader.name() == "clientS3cret"){
+                            clientS3cret = reader.readElementText();
+                        }
+                        else if(reader.name() == "audiance"){
+                            audiance = reader.readElementText();
+                        }
+                        else if(reader.name() == "grant_type"){
+                            grant_type = reader.readElementText();
+                        }
+                        else if(reader.name() == "scope"){
+                            scope = reader.readElementText();
+                        }
+                        else if(reader.name() == "serverURL"){
+                            serverURL = reader.readElementText();
+                        }
+                        else{
+                            reader.skipCurrentElement();
+                        }
+                    }
+                }
+            }
+    }
+    else{
+        qDebug()<<"Unable to load configuration file";
+    }
     this->generateToken();
 }
 
@@ -51,7 +88,7 @@ void DataClass::checkDroneStatus(QString location)
 {
     location = location + drone.serialId;
     if(drone.serialId.size() == 0){
-        //dhaka return;
+        return;
     }
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
@@ -161,7 +198,6 @@ void DataClass::readyReadFlightPlan()
     {
         emit planUploadFailed();
     }
-
 }
 
 //Clear Drone Data

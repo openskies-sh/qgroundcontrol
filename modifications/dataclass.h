@@ -12,6 +12,7 @@
 #include <QFile>
 #include <qregexp.h>
 #include "dictionary.h"
+#include "QDir"
 
 ///This is the core class that handles the communications with the management server, stores all the data related to vehicle.
 /// This class is a singleton and never exposed to UI
@@ -80,8 +81,16 @@ private:
         bool status;
         bool npntCheck;
     } drone;
+
     QNetworkAccessManager manager;
     QString access_token;
+    QString configurationFilePath = QDir::currentPath() + "/config.xml";
+    QString clientId;
+    QString clientS3cret;
+    QString audiance;
+    QString grant_type;
+    QString scope;
+    QString serverURL;
 
 };
 

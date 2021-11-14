@@ -1,0 +1,9 @@
+<!--This is a configuration file. This file needs to be placed in the directory where the Aerobridge Guardian is installed-->
+<configuration>
+	<clientId><!--PASTE YOUR clientId HERE--></clientId>
+	<clientS3cret><!--PASTE YOUR clientS3cret HERE--></clientS3cret>
+	<audiance><!--PASTE YOUR audiance HERE--></audiance>
+	<grant_type><!--PASTE YOUR grant_type HERE--></grant_type>
+	<scope><!--PASTE YOUR scope HERE--></scope>
+	<serverURL><!--PASTE YOUR serverURL HERE--></serverURL>
+</configuration>
