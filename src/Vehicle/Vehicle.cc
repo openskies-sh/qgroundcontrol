@@ -863,7 +863,7 @@ void Vehicle::_handleStatusText(mavlink_message_t& message)
 {
     QByteArray  b;
     QString     messageText;
-    QString     droneNumber,checkdroneNumber;
+    QString     droneNumber;
 
     mavlink_statustext_t statustext;
     mavlink_msg_statustext_decode(&message, &statustext);

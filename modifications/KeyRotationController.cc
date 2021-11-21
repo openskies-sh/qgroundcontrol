@@ -1,4 +1,4 @@
-#include "keyrotationcontroller.h"
+#include "KeyRotationController.h"
 
 KeyRotationController::KeyRotationController(QObject *parent) : QObject(parent)
 {

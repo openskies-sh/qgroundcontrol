@@ -1,4 +1,4 @@
-#include "connecttoserver.h"
+#include "ConnectToServer.h"
 
 ConnectToServer::ConnectToServer(QObject *parent) : QObject(parent)
 {

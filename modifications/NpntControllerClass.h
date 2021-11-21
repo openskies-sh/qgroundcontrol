@@ -5,8 +5,8 @@
 #include "QGCApplication.h"
 #include "QTimer"
 #include "QThread"
-#include "keyrotationcontroller.h"
-#include "dictionary.h"
+#include "KeyRotationController.h"
+#include "GlobalDictionary.h"
 #include "LinkManager.h"
 
 /// This class controlles the whole NPNT init process.
@@ -50,7 +50,7 @@ private slots:
       void hardwareChanged();
 
 private:
-    QTimer *timer1, *timer2, *timer3;
+    QTimer *checkDeviceConnectedTimer, *checkDroneStatusTimer;
     DataClass* _dataClass;
     QString m_url;
     bool keyRotating;

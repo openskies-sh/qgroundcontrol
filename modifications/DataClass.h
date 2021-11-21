@@ -11,7 +11,7 @@
 #include <QJsonArray>
 #include <QFile>
 #include <qregexp.h>
-#include "dictionary.h"
+#include "GlobalDictionary.h"
 #include "QDir"
 
 ///This is the core class that handles the communications with the management server, stores all the data related to vehicle.
@@ -22,7 +22,7 @@ class DataClass : public QObject
     Q_OBJECT
 public:
     explicit DataClass(QObject *parent = nullptr);
-    QString getURL(){return serverURL;}
+    QString getURL(){return serverUrl;}
     bool checkdroneIDChanged(QString vehicleID);
 
 signals:
@@ -53,8 +53,8 @@ public slots:
     void checkDroneStatus(QString location);
     ///This function makes a request to upload public key to the server.
     void uploadKeyToServer(QString location, QString pathOfKey);
-    ///This function makes a request to upload flight plan (currently kml) to the server.
-    void uploadPlanToServer(QString location, QString pathOfPlan);
+    ///This function makes a request to upload flight plan to the server.
+    void uploadPlanToServer(QString location, QJsonObject plan);
     ///Clears drone data in between a QGroundControl session. Currently not used. But can be used if logout feature is implemented.
     void clearDroneData();
 
@@ -83,14 +83,15 @@ private:
     } drone;
 
     QNetworkAccessManager manager;
-    QString access_token;
-    QString configurationFilePath = QDir::currentPath() + "/config.xml";
+    QString accessToken;
+    QString configurationFilePath = QDir::currentPath() + "/" +configFileName;
     QString clientId;
-    QString clientS3cret;
-    QString audiance;
-    QString grant_type;
+    QString clientSecret;
+    QString audience;
+    QString grantType;
     QString scope;
-    QString serverURL;
+    QString serverUrl;
+    QString oAuthServerUrl;
 
 };
 

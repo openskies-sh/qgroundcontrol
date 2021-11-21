@@ -1,4 +1,4 @@
-#include "npntcontrollerclass.h"
+#include "NpntControllerClass.h"
 
 
 NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
@@ -7,12 +7,11 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
     m_keyController         = new KeyRotationController();
     _dataClass              = qgcApp()->getDataClass();
     m_url                   = qgcApp()->getDataClass()->getURL();
-    timer1                  = new QTimer(this);
-    timer2                  = new QTimer(this);
-    timer3                  = new QTimer(this);
+    checkDeviceConnectedTimer  = new QTimer(this);
+    checkDroneStatusTimer     = new QTimer(this);
 
-    connect(timer1  , SIGNAL(timeout()), this, SLOT(checkdeviceConnected()));
-    connect(timer2  , SIGNAL(timeout()), this, SLOT(checkIsBoardActive()));
+    connect(checkDeviceConnectedTimer  , SIGNAL(timeout()), this, SLOT(checkdeviceConnected()));
+    connect(checkDroneStatusTimer  , SIGNAL(timeout()), this, SLOT(checkIsBoardActive()));
     connect(_dataClass, SIGNAL(droneNotActive()), this, SLOT(boardNotActive()));
     connect(_dataClass, SIGNAL(droneActive()), this, SLOT(boardIsActive()));
     connect(_dataClass  , SIGNAL(keyUploadFailed()) , this, SLOT(KeyRotateFailed()));
@@ -26,10 +25,10 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
 bool NpntControllerClass::checkdeviceConnected()
 {
     if(!qgcApp()->toolbox()->multiVehicleManager()->activeVehicleAvailable()){
-        timer1->start(500);
+        checkDeviceConnectedTimer->start(checkDeviceConnectedTimerDuration.toInt());
         return false;
     }
-    timer1->stop();
+    checkDeviceConnectedTimer->stop();
     emit hardwareConnected();
     checkIsBoardActive();
     return true;
@@ -38,26 +37,25 @@ bool NpntControllerClass::checkdeviceConnected()
 bool NpntControllerClass::checkIsBoardActive()
 {
       _dataClass->checkDroneStatus(m_url+checkDroneStatusUrl);
-      timer2->start(5000);
+      checkDroneStatusTimer->start(checkDroneStatusTimerDuration.toInt());
       return true;
 }
 
 void NpntControllerClass::boardIsActive()
 {
-    timer2->stop();
+    checkDroneStatusTimer->stop();
     emit droneIsActive();
     keyRotation();
 }
 
 void NpntControllerClass::boardNotActive()
 {
-    timer2->stop();
+    checkDroneStatusTimer->stop();
 }
 
 bool NpntControllerClass::keyRotation()
 {
-    if(!keyRotating)
-    {
+    if(!keyRotating){
         keyRotating = true;
         m_keyController->startKeyRotation(m_url+uploadPublicKeyUrl);
         return true;

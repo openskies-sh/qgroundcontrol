@@ -4,8 +4,8 @@
 #include <QObject>
 #include <FTPManager.h>
 #include <QGCApplication.h>
-#include <dataclass.h>
-#include "dictionary.h"
+#include <DataClass.h>
+#include "GlobalDictionary.h"
 
 ///KeyRotationController class is primarily created for facilitating key rotation from the drone to the management server.
 class KeyRotationController : public QObject

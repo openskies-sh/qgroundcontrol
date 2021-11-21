@@ -427,12 +427,12 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 #
 
 HEADERS += \
-    ftpupload.h \
-    modifications/connecttoserver.h \
-    modifications/dataclass.h \
-    modifications/dictionary.h \
-    modifications/keyrotationcontroller.h \
-    modifications/npntcontrollerclass.h \
+    modifications/FtpUpload.h \
+    modifications/ConnectToServer.h \
+    modifications/DataClass.h \
+    modifications/GlobalDictionary.h \
+    modifications/KeyRotationController.h \
+    modifications/NpntControllerClass.h \
     src/QmlControls/QmlUnitsConversion.h \
     src/Vehicle/VehicleEscStatusFactGroup.h \
     src/api/QGCCorePlugin.h \
@@ -447,11 +447,11 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 }
 
 SOURCES += \
-    ftpupload.cpp \
-    modifications/connecttoserver.cpp \
-    modifications/dataclass.cpp \
-    modifications/keyrotationcontroller.cpp \
-    modifications/npntcontrollerclass.cpp \
+    modifications/FtpUpload.cc \
+    modifications/ConnectToServer.cc \
+    modifications/DataClass.cc \
+    modifications/KeyRotationController.cc \
+    modifications/NpntControllerClass.cc \
     src/Vehicle/VehicleEscStatusFactGroup.cc \
     src/api/QGCCorePlugin.cc \
     src/api/QGCOptions.cc \

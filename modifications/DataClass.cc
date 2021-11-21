@@ -1,4 +1,4 @@
-#include "dataclass.h"
+#include "DataClass.h"
 #include "QXmlStreamReader"
 
 DataClass::DataClass(QObject *parent) : QObject(parent)
@@ -13,30 +13,25 @@ DataClass::DataClass(QObject *parent) : QObject(parent)
                     while(reader.readNextStartElement()){
                         if(reader.name() == "clientId"){
                             clientId = reader.readElementText();
-                        }
-                        else if(reader.name() == "clientS3cret"){
-                            clientS3cret = reader.readElementText();
-                        }
-                        else if(reader.name() == "audiance"){
-                            audiance = reader.readElementText();
-                        }
-                        else if(reader.name() == "grant_type"){
-                            grant_type = reader.readElementText();
-                        }
-                        else if(reader.name() == "scope"){
+                        }else if(reader.name() == "clientSecret"){
+                            clientSecret = reader.readElementText();
+                        }else if(reader.name() == "audience"){
+                            audience = reader.readElementText();
+                        }else if(reader.name() == "grantType"){
+                            grantType = reader.readElementText();
+                        }else if(reader.name() == "scope"){
                             scope = reader.readElementText();
-                        }
-                        else if(reader.name() == "serverURL"){
-                            serverURL = reader.readElementText();
-                        }
-                        else{
+                        }else if(reader.name() == "serverUrl"){
+                            serverUrl = reader.readElementText();
+                        }else if(reader.name() == "oAuthServerUrl"){
+                            oAuthServerUrl = reader.readElementText();
+                        }else{
                             reader.skipCurrentElement();
                         }
                     }
                 }
             }
-    }
-    else{
+    }else{
         qDebug()<<"Unable to load configuration file";
     }
     this->generateToken();
@@ -44,24 +39,20 @@ DataClass::DataClass(QObject *parent) : QObject(parent)
 
 bool DataClass::checkdroneIDChanged(QString vehicleID){
 
-    if(drone.serialId  == vehicleID)
-    {
+    if(drone.serialId  == vehicleID){
         return  false;
     }
-    else
-    {
-        drone.serialId = vehicleID;  
-        emit droneIDChanged();
-        return true;
-    }
+    drone.serialId = vehicleID;
+    emit droneIDChanged();
+    return true;
 }
 
 //TOKEN REQUEST
 void DataClass::generateToken()
 {
-    QNetworkRequest request = QNetworkRequest(QUrl("https://id.openskies.sh/oauth/token/"));
+    QNetworkRequest request = QNetworkRequest(QUrl(oAuthServerUrl));
     request.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
-    QByteArray postData = QUrl(QString("client_id=%1&client_secret=%2&audience=%3&scope=%4&grant_type=%5").arg(clientId,clientS3cret,audiance,scope,grant_type)).toEncoded();
+    QByteArray postData = QUrl(QString("client_id=%1&client_secret=%2&audience=%3&scope=%4&grant_type=%5").arg(clientId,clientSecret,audience,scope,grantType)).toEncoded();
     QNetworkReply* reply = manager.post(request, postData);
     connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadToken);
 }
@@ -72,18 +63,19 @@ void DataClass::readyReadToken()
     QString replyStr = reply->readAll();
     QJsonDocument jsonResponse = QJsonDocument::fromJson(replyStr.toUtf8());
     QJsonObject jsonObject = jsonResponse.object();
-    access_token = jsonObject["access_token"].toString();
-    if(access_token!="")
-    {
+    accessToken = jsonObject["access_token"].toString();
+    if(accessToken!=""){
         emit tokenGenerated();
     }
-    else
-    {
+    else{
         emit tokenNotGenerated();
     }
 }
 
 //DRONE STATUS CHECK
+/// GET REQUEST
+/// For more information refer "registry/aircraft/rfm/" end point
+/// For more information visit: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::checkDroneStatus(QString location)
 {
     location = location + drone.serialId;
@@ -91,7 +83,7 @@ void DataClass::checkDroneStatus(QString location)
         return;
     }
     QNetworkRequest request = QNetworkRequest(location);
-    request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     QNetworkReply* reply = manager.get(request);
     connect(reply,&QNetworkReply::finished, this, &DataClass::readyReadDroneStatus);
 
@@ -105,17 +97,17 @@ void DataClass::readyReadDroneStatus()
     QJsonObject jsonObject = jsonResponse.object();
     drone.status = jsonObject["status"].toInt();
     drone.uuid = jsonObject["id"].toString();
-    if(drone.status)
-    {
+    if(drone.status){
         emit droneActive();
-    }
-    else
-    {
+    }else{
         emit droneNotActive();
     }
 }
 
 //PUBLIC KEY ROTATION
+/// POST REQUEST
+/// For more information refer "pki/credentials/" end point
+/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
 {
     QString contentOfKey;
@@ -126,7 +118,7 @@ void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
     contentOfKey.chop(1);
     drone.publicKey = contentOfKey;
     QNetworkRequest request = QNetworkRequest(location);
-    request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     request.setRawHeader("Content-Type", "application/json");
 
     QJsonObject obj;
@@ -149,40 +141,32 @@ void DataClass::readyReadPublicKey()
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    if(statusCode == 201 || statusCode == 200)
-    {
+    if(statusCode == 201 || statusCode == 200){
         emit keyUploadSuccessful();
-    }
-    else
-    {
+    }else{
         emit keyUploadFailed();
     }
 
 }
 // UPLOAD FLIGHT PLAN
-void DataClass::uploadPlanToServer(QString location, QString pathOfPlan)
-{
-    QString contentOfPlan;
-    QFile file(pathOfPlan);
-    file.open(QIODevice::ReadOnly);
-    contentOfPlan = file.readAll();
-    file.close();
-    contentOfPlan.chop(1);
-    contentOfPlan.remove("\n");
-    contentOfPlan = contentOfPlan.simplified();
+/// POST REQUEST
+/// For more information refer "gcs/flight-plans" end point
+/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
+void DataClass::uploadPlanToServer(QString location, QJsonObject plan){
+
     QNetworkRequest request = QNetworkRequest(location);
-    request.setRawHeader("Authorization",QByteArray("Bearer ").append(access_token));
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     request.setRawHeader("Content-Type", "application/json");
+
     QJsonObject obj;
-    obj["name"] = "test_new";
-    obj["kml"] = contentOfPlan;
-    obj["start_datetime"] = "2019-08-24T14:15:22";
-    obj["end_datetime"] = "2019-08-24T14:15:22";
+    obj["name"] = "FlightOperation";
+    obj["plan_file_json"] = plan;
+
     QJsonDocument doc(obj);
     QByteArray postData = doc.toJson();
+
     QNetworkReply* reply = manager.post(request, postData);
     connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadFlightPlan);
-
 }
 
 void DataClass::readyReadFlightPlan()
@@ -190,12 +174,9 @@ void DataClass::readyReadFlightPlan()
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    if(statusCode == 201 || statusCode == 200)
-    {
+    if(statusCode == 201 || statusCode == 200){
         emit planUploadSuccessful();
-    }
-    else
-    {
+    }else{
         emit planUploadFailed();
     }
 }

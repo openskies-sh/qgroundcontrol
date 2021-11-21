@@ -27,7 +27,7 @@
 #include <QDomDocument>
 #include <QJsonDocument>
 #include <QFileInfo>
-#include "dictionary.h"
+#include "GlobalDictionary.h"
 
 QGC_LOGGING_CATEGORY(PlanMasterControllerLog, "PlanMasterControllerLog")
 
@@ -436,9 +436,27 @@ void PlanMasterController::loadFromFile(const QString& filename)
     }
 }
 
-void PlanMasterController::uploadKMLToServer(const QString &filename)
+void PlanMasterController::uploadPlanToServer()
 {
-    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl,filename);
+    QJsonObject planJson;
+    qgcApp()->toolbox()->corePlugin()->preSaveToJson(this, planJson);
+    QJsonObject missionJson;
+    QJsonObject fenceJson;
+    QJsonObject rallyJson;
+    JsonHelper::saveQGCJsonFileHeader(planJson, kPlanFileType, kPlanFileVersion);
+    //-- Allow plugin to preemptly add its own keys to mission
+    qgcApp()->toolbox()->corePlugin()->preSaveToMissionJson(this, missionJson);
+    _missionController.save(missionJson);
+    //-- Allow plugin to add its own keys to mission
+    qgcApp()->toolbox()->corePlugin()->postSaveToMissionJson(this, missionJson);
+    _geoFenceController.save(fenceJson);
+    _rallyPointController.save(rallyJson);
+    planJson[kJsonMissionObjectKey] = missionJson;
+    planJson[kJsonGeoFenceObjectKey] = fenceJson;
+    planJson[kJsonRallyPointsObjectKey] = rallyJson;
+    qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
+
+    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl, planJson);
 }
 
 QJsonDocument PlanMasterController::saveToJson()

@@ -31,7 +31,7 @@
 #include "UASMessageHandler.h"
 #include "FactSystem.h"
 #include "GPSRTKFactGroup.h"
-#include "dataclass.h"
+#include "DataClass.h"
 
 #ifdef QGC_RTLAB_ENABLED
 #include "OpalLink.h"

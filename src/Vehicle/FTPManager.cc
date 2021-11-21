@@ -93,7 +93,7 @@ bool FTPManager::upload(const QString& toDir, const QString& fromURI)
     static const StateFunctions_t rgUploadStateMachine[] = {
         { &FTPManager::_createFileROBegin,          &FTPManager::_createFileROAckOrNak,       &FTPManager::_createFileROTimeout },
         { &FTPManager::_writeFileBegin,             &FTPManager::_writeFileAckOrNak,          &FTPManager::_writeFileTimeout },
-      //  { &FTPManager::_fillMissingBlocksBegin,     &FTPManager::_fillMissingBlocksAckOrNak,    &FTPManager::_fillMissingBlocksTimeout },
+        { &FTPManager::_fillMissingBlocksBegin,     &FTPManager::_fillMissingBlocksAckOrNak,    &FTPManager::_fillMissingBlocksTimeout },
         { &FTPManager::_resetSessionsBegin,         &FTPManager::_resetSessionsAckOrNak,        &FTPManager::_resetSessionsTimeout },
         { &FTPManager::_uploadCompleteNoError,    nullptr,                                    nullptr },
     };

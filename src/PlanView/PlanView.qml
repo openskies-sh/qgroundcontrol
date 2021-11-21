@@ -298,16 +298,6 @@ Item {
             fileDialog.nameFilters =    ShapeFileHelper.fileDialogKMLFilters
             fileDialog.openForSave()
         }
-
-        function kmlUploadToServer() {
-            fileDialog.title =          qsTr("Select KML File")
-            fileDialog.planFiles =      false
-            fileDialog.selectExisting = true
-            fileDialog.nameFilters =    ShapeFileHelper.fileDialogKMLFilters
-            fileDialog.openForLoad()
-        }
-
-
     }
 
     Connections {
@@ -387,11 +377,6 @@ Item {
                 _planMasterController.fitViewportToItems()
                 _missionController.setCurrentPlanViewSeqNum(0, true)
             }
-            else
-            {
-                _planMasterController.uploadKMLToServer(file)
-            }
-
             close()
         }
 
@@ -1207,11 +1192,12 @@ Item {
                 QGCButton {
                     Layout.columnSpan:  3
                     Layout.fillWidth:   true
-                    text:               qsTr("Upload KML to Management Server")
+                    text:               qsTr("Upload Plan File to Management Server")
                     enabled:            !_planMasterController.syncInProgress
                     onClicked: {
                         dropPanel.hide()
-                       _planMasterController.kmlUploadToServer()
+                       _planMasterController.uploadPlanToServer()
+
                     }
                 }
             }

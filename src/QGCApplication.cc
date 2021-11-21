@@ -109,9 +109,9 @@
 #include "QGCMAVLink.h"
 #include "VehicleLinkManager.h"
 
-#include "ftpupload.h"
-#include "npntcontrollerclass.h"
-#include "connecttoserver.h"
+#include "FtpUpload.h"
+#include "NpntControllerClass.h"
+#include "ConnectToServer.h"
 
 #if defined(QGC_ENABLE_PAIRING)
 #include "PairingManager.h"

@@ -39,7 +39,7 @@
 #include "GeoFenceManager.h"
 #include "RallyPointManager.h"
 #include "FTPManager.h"
-#include "dictionary.h"
+#include "GlobalDictionary.h"
 
 class UAS;
 class UASInterface;
