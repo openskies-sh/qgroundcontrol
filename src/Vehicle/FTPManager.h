@@ -38,11 +38,14 @@ public:
     /// @return true: download has started, false: error, no download
     /// Signals downloadComplete, commandError, commandProgress
     bool download(const QString& fromURI, const QString& toDir);
+    bool upload(const QString& toDir, const QString& fromURI);
+
 
     static const char* mavlinkFTPScheme;
 
 signals:
     void downloadComplete(const QString& file, const QString& errorMsg);
+    void uploadComplete(const QString& file, const QString& errorMsg);
     
     // Signals associated with all commands
     
@@ -99,6 +102,31 @@ private:
         }
     } DownloadState_t;
 
+    typedef struct {
+        uint8_t                 sessionId;
+        uint32_t                expectedOffset;         ///< offset which should be coming next
+        uint32_t                bytesWritten;
+        QList<MissingData_t>    rgMissingData;
+        QDir                    fullPathOnSystem;      ///< Fully qualified path to file on system
+        QString                 toDir;                  ///< Directory to download file to
+        QString                 fileName;               ///< Filename (no path) for download file
+        uint32_t                fileSize;               ///< Size of file being downloaded
+        QFile                   file;
+        int                     retryCount;
+
+        void reset() {
+            sessionId       = 0;
+            expectedOffset  = 0;
+            bytesWritten    = 0;
+            retryCount      = 0;
+            fileSize        = 0;
+            toDir.clear();
+            fileName.clear();
+            rgMissingData.clear();
+            file.close();
+        }
+    } UploadState_t;
+
 
     void    _mavlinkMessageReceived     (const mavlink_message_t& message);
     void    _startStateMachine          (void);
@@ -106,9 +134,19 @@ private:
     void    _openFileROBegin            (void);
     void    _openFileROAckOrNak         (const MavlinkFTP::Request* ackOrNak);
     void    _openFileROTimeout          (void);
+
+    void    _createFileROBegin           (void);
+    void    _createFileROAckOrNak        (const MavlinkFTP::Request* ackOrNak);
+    void    _createFileROTimeout         (void);
+
     void    _burstReadFileBegin         (void);
     void    _burstReadFileAckOrNak      (const MavlinkFTP::Request* ackOrNak);
     void    _burstReadFileTimeout       (void);
+
+    void    _writeFileBegin             (void);
+    void    _writeFileAckOrNak          (const MavlinkFTP::Request* ackOrNak);
+    void    _writeFileTimeout           (void);
+
     void    _fillMissingBlocksBegin     (void);
     void    _fillMissingBlocksAckOrNak  (const MavlinkFTP::Request* ackOrNak);
     void    _fillMissingBlocksTimeout   (void);
@@ -117,18 +155,24 @@ private:
     void    _resetSessionsTimeout       (void);
     QString _errorMsgFromNak            (const MavlinkFTP::Request* nak);
     void    _sendRequestExpectAck       (MavlinkFTP::Request* request);
+
     void    _downloadCompleteNoError    (void) { _downloadComplete(QString()); }
+    void    _uploadCompleteNoError      (void) { _uploadComplete(QString());   }
+
     void    _downloadComplete           (const QString& errorMsg);
+    void    _uploadComplete             (const QString& errorMsg);
     void    _emitErrorMessage           (const QString& msg);
     void    _fillRequestDataWithString(MavlinkFTP::Request* request, const QString& str);
     void    _fillMissingBlocksWorker    (bool firstRequest);
     void    _burstReadFileWorker        (bool firstRequest);
+    void    _burstWriteFileWorker       (bool firstRequest);
     bool    _parseURI                   (const QString& uri, QString& parsedURI, uint8_t& compId);
 
     Vehicle*                _vehicle;
     uint8_t                 _ftpCompId = MAV_COMP_ID_AUTOPILOT1;
     QList<StateFunctions_t> _rgStateMachine;
     DownloadState_t         _downloadState;
+    UploadState_t           _uploadState;
     QTimer                  _ackOrNakTimeoutTimer;
     int                     _currentStateMachineIndex   = -1;
     uint16_t                _expectedIncomingSeqNumber  = 0;

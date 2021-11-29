@@ -109,6 +109,10 @@
 #include "QGCMAVLink.h"
 #include "VehicleLinkManager.h"
 
+#include "FtpUpload.h"
+#include "NpntControllerClass.h"
+#include "ConnectToServer.h"
+
 #if defined(QGC_ENABLE_PAIRING)
 #include "PairingManager.h"
 #endif
@@ -518,8 +522,11 @@ void QGCApplication::_initCommon()
 
     // Register our Qml objects
 
-    qmlRegisterType<QGCPalette>     ("QGroundControl.Palette", 1, 0, "QGCPalette");
-    qmlRegisterType<QGCMapPalette>  ("QGroundControl.Palette", 1, 0, "QGCMapPalette");
+    qmlRegisterType<QGCPalette>              ("QGroundControl.Palette", 1, 0, "QGCPalette");
+    qmlRegisterType<QGCMapPalette>           ("QGroundControl.Palette", 1, 0, "QGCMapPalette");
+    qmlRegisterType <FTPUpload>              ("com.FTPUpload", 1, 0, "FTPUploadController");
+    qmlRegisterType <NpntControllerClass>    ("com.NpntControllerClass", 1, 0, "NpntController");
+    qmlRegisterType <ConnectToServer>        ("com.ConnectToServer",1,0,"ConnectServerController");
 
     qmlRegisterUncreatableType<Vehicle>                 (kQGCVehicle,                       1, 0, "Vehicle",                    kRefOnly);
     qmlRegisterUncreatableType<MissionManager>          (kQGCVehicle,                       1, 0, "MissionManager",             kRefOnly);

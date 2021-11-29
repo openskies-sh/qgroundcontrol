@@ -1,0 +1,10 @@
+<!--This is a configuration file. This file needs to be placed in the directory where the Aerobridge Guardian is installed-->
+<configuration>
+	<clientId><!--PASTE YOUR clientId HERE--></clientId>
+	<clientSecret><!--PASTE YOUR clientS3cret HERE--></clientSecret>
+	<audience><!--PASTE YOUR audiance HERE--></audience>
+	<grantType><!--PASTE YOUR grant_type HERE--></grantType>
+	<scope><!--PASTE YOUR scope HERE--></scope>
+	<serverUrl><!--PASTE YOUR serverURL HERE--></serverUrl>
+	<oAuthServerUrl><!--PASTE YOUR AUTHENTICATION SERVER URL HERE--></oAuthServerUrl>
+</configuration>

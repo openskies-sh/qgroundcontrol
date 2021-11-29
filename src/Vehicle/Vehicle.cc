@@ -863,6 +863,7 @@ void Vehicle::_handleStatusText(mavlink_message_t& message)
 {
     QByteArray  b;
     QString     messageText;
+    QString     droneNumber;
 
     mavlink_statustext_t statustext;
     mavlink_msg_statustext_decode(&message, &statustext);
@@ -873,6 +874,19 @@ void Vehicle::_handleStatusText(mavlink_message_t& message)
     strncpy(b.data(), statustext.text, MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN);
     b[b.length()-1] = '\0';
     messageText = QString(b);
+    droneNumber = statustext.text;
+    for(int i=0;i<supportedflightControllers.length();i++)
+    {
+        if(droneNumber.contains(supportedflightControllers[i]))
+        {
+            droneNumber = droneNumber.mid(droneNumber.indexOf(" ",Qt::CaseInsensitive),-1);
+            droneNumber = droneNumber.simplified();
+            droneNumber.replace( " ", "" );
+            qgcApp()->getDataClass()->checkdroneIDChanged(droneNumber);
+            break;
+        }
+    }
+
     bool includesNullTerminator = messageText.length() < MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN;
 
     if (_chunkedStatusTextInfoMap.contains(compId) && _chunkedStatusTextInfoMap[compId].chunkId != statustext.id) {

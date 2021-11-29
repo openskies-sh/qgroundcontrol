@@ -27,6 +27,7 @@
 #include <QDomDocument>
 #include <QJsonDocument>
 #include <QFileInfo>
+#include "GlobalDictionary.h"
 
 QGC_LOGGING_CATEGORY(PlanMasterControllerLog, "PlanMasterControllerLog")
 
@@ -46,6 +47,8 @@ PlanMasterController::PlanMasterController(QObject* parent)
     , _rallyPointController (this)
 {
     _commonInit();
+    _dataClass              = qgcApp()->getDataClass();
+    m_url                   = qgcApp()->getDataClass()->getURL();
 }
 
 #ifdef QT_DEBUG
@@ -79,7 +82,6 @@ void PlanMasterController::_commonInit(void)
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
 }
-
 
 PlanMasterController::~PlanMasterController()
 {
@@ -432,6 +434,29 @@ void PlanMasterController::loadFromFile(const QString& filename)
     if (!offline()) {
         setDirty(true);
     }
+}
+
+void PlanMasterController::uploadPlanToServer()
+{
+    QJsonObject planJson;
+    qgcApp()->toolbox()->corePlugin()->preSaveToJson(this, planJson);
+    QJsonObject missionJson;
+    QJsonObject fenceJson;
+    QJsonObject rallyJson;
+    JsonHelper::saveQGCJsonFileHeader(planJson, kPlanFileType, kPlanFileVersion);
+    //-- Allow plugin to preemptly add its own keys to mission
+    qgcApp()->toolbox()->corePlugin()->preSaveToMissionJson(this, missionJson);
+    _missionController.save(missionJson);
+    //-- Allow plugin to add its own keys to mission
+    qgcApp()->toolbox()->corePlugin()->postSaveToMissionJson(this, missionJson);
+    _geoFenceController.save(fenceJson);
+    _rallyPointController.save(rallyJson);
+    planJson[kJsonMissionObjectKey] = missionJson;
+    planJson[kJsonGeoFenceObjectKey] = fenceJson;
+    planJson[kJsonRallyPointsObjectKey] = rallyJson;
+    qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
+
+    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl, planJson);
 }
 
 QJsonDocument PlanMasterController::saveToJson()

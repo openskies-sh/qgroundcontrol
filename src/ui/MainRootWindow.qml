@@ -19,6 +19,9 @@ import QGroundControl.Controls      1.0
 import QGroundControl.ScreenTools   1.0
 import QGroundControl.FlightDisplay 1.0
 import QGroundControl.FlightMap     1.0
+import com.ConnectToServer 1.0
+import com.NpntControllerClass 1.0
+import "qrc:/qml/modifications/"
 
 /// @brief Native QML top level window
 /// All properties defined here are visible to all QML pages.
@@ -27,6 +30,38 @@ ApplicationWindow {
     minimumWidth:   ScreenTools.isMobile ? Screen.width  : Math.min(ScreenTools.defaultFontPixelWidth * 100, Screen.width)
     minimumHeight:  ScreenTools.isMobile ? Screen.height : Math.min(ScreenTools.defaultFontPixelWidth * 50, Screen.height)
     visible:        true
+
+    NpntProcess{
+        id:npnt
+
+    }
+
+    ConnectServer{
+        id: connect
+        visible: true
+    }
+
+    ConnectServerController{
+        id:connectController
+        onConnectionSuccessful: {
+            connect.visible = false;
+            npnt.visible = true;
+        }
+    }
+
+    NpntController{
+        id:npntcontroller
+        onHardwareConnected: npnt.hardwareConnected = true;
+        onDroneIsActive: npnt.droneIsActive = true;
+        onKeyRotationCompleted:npnt.keyRotationCompleted = true;
+        onNpntComplete: npnt.visible = false;
+        onHardwareChangeDetected:{
+            npnt.hardwareConnected = false;
+            npnt.droneIsActive = false;
+            npnt.keyRotationCompleted = false;
+            npnt.visible = true;
+        }
+    }
 
     Component.onCompleted: {
         //-- Full screen on mobile or tiny screens
@@ -74,6 +109,7 @@ ApplicationWindow {
 
     //-------------------------------------------------------------------------
     //-- Global Scope Variables
+
 
     QtObject {
         id: globals

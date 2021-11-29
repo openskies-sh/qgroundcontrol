@@ -371,11 +371,15 @@ Item {
         }
 
         onAcceptedForLoad: {
-            _planMasterController.loadFromFile(file)
-            _planMasterController.fitViewportToItems()
-            _missionController.setCurrentPlanViewSeqNum(0, true)
+            if(planFiles)
+            {
+                _planMasterController.loadFromFile(file)
+                _planMasterController.fitViewportToItems()
+                _missionController.setCurrentPlanViewSeqNum(0, true)
+            }
             close()
         }
+
     }
 
     Component {
@@ -1182,6 +1186,18 @@ Item {
                         }
                         dropPanel.hide()
                         _planMasterController.saveKmlToSelectedFile()
+                    }
+                }
+
+                QGCButton {
+                    Layout.columnSpan:  3
+                    Layout.fillWidth:   true
+                    text:               qsTr("Upload Plan File to Management Server")
+                    enabled:            !_planMasterController.syncInProgress
+                    onClicked: {
+                        dropPanel.hide()
+                       _planMasterController.uploadPlanToServer()
+
                     }
                 }
             }
