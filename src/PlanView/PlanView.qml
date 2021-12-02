@@ -185,7 +185,7 @@ Item {
         id: promptForPlanUpload
 
         QGCViewDialog {
-            property string message: qsTr("Name of plan")
+            property string message: qsTr("Enter Plan Name")
 
             QGCFlickable {
                 anchors.fill:   parent
@@ -195,7 +195,6 @@ Item {
                     id:             label
                     anchors.left:   parent.left
                     anchors.right:  parent.right
-
                     wrapMode:       Text.WordWrap
                     text:           message
                 }
@@ -206,15 +205,14 @@ Item {
                     anchors.topMargin: 5
                     anchors.top:    label.bottom
                     height:         20
-                    color:          "gray"
+                    color:          "white"
 
                     TextInput{
                         id: promptForPlanUploadInputField
-                        anchors.fill:   parent
-                        anchors.margins: 5
-                        text: "Hello"
                         color: "black"
                         wrapMode: Text.WordWrap
+                        text: "PlanA"
+                        font.pixelSize: 15
                     }
                 }
             }
@@ -1241,10 +1239,63 @@ Item {
                     onClicked: {
                         dropPanel.hide()
                         mainWindow.showComponentDialog(promptForPlanUpload, qsTr("Plan Upload"), mainWindow.showDialogDefaultWidth, StandardButton.Ok | StandardButton.Cancel)
-                       //_planMasterController.uploadPlanToServer()
-
                     }
                 }
+            }
+
+            SectionHeader {
+                id:                 guardianSection
+                Layout.fillWidth:   true
+                text:               qsTr("Guardian")
+            }
+
+            GridLayout{
+                columns:            3
+                rowSpacing:         _margin
+                columnSpacing:      ScreenTools.defaultFontPixelWidth
+                visible:            storageSection.visible
+
+                RowLayout{
+                    Layout.fillWidth:   true
+                    spacing:            _margin
+                    visible:            vehicleSection.visible
+
+                    QGCLabel {
+                        id:                     planSelectionLabel
+                        anchors.left:           parent.left
+                        horizontalAlignment:    Text.AlignHCenter
+                        text:                   "Pick a Plan"
+                        color:                  "white"
+                    }
+
+                    QGCMenu{
+                        id: planMenu
+
+                        QGCMenuItem {
+                            text: "New..."
+                            onTriggered: document.reset()
+                        }
+                        QGCMenuItem {
+                            text: "Open..."
+                            onTriggered: openDialog.open()
+                        }
+                        QGCMenuItem {
+                            text: "Save"
+                            onTriggered: saveDialog.open()
+                        }
+                    }
+                }
+
+                QGCButton {
+                    Layout.columnSpan:  3
+                    Layout.fillWidth:   true
+                    text:               qsTr("Create Operation and Get Permission")
+                    enabled:            !_planMasterController.syncInProgress
+                    onClicked: {
+                        dropPanel.hide()
+                    }
+                }
+
             }
 
             SectionHeader {

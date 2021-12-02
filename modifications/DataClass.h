@@ -58,6 +58,8 @@ public slots:
     ///Clears drone data in between a QGroundControl session. Currently not used. But can be used if logout feature is implemented.
     void clearDroneData();
 
+    void getAllFlightPlans();
+
 private slots:
     ///Reads the reply of generateToken request
     ///If token generation is successful it emits tokenGenerated() signal otherwise emits tokenNotGenerated()
@@ -72,6 +74,13 @@ private slots:
     /// If the server responds that the plan is uploaded then planUploadSuccessful() is emitted. Otherwise planUploadFailed() is emitted
     void readyReadFlightPlan();
 
+    void readyReadAllFlightPlans();
+
+
+
+private:
+    void addToFlightData(QJsonObject obj);
+
 private:
     struct Drone
     {
@@ -84,9 +93,12 @@ private:
 
     struct FlightData{
         QString planID;
+        QString planName;
         QString pilotID;
+        QJsonObject plan;
     };
 
+    QVector<FlightData> flightData;
     QNetworkAccessManager manager;
     QString accessToken;
     QString configurationFilePath = QDir::currentPath() + "/" +configFileName;

@@ -66,6 +66,7 @@ void DataClass::readyReadToken()
     accessToken = jsonObject["access_token"].toString();
     if(accessToken!=""){
         emit tokenGenerated();
+        getAllFlightPlans();
     }
     else{
         emit tokenNotGenerated();
@@ -159,8 +160,11 @@ void DataClass::uploadPlanToServer(QString location, QJsonObject plan, QString p
     request.setRawHeader("Content-Type", "application/json");
 
     QJsonObject obj;
-    // obj["plan_name"] = planName;
-    obj["name"] = "FlightOperation";
+    if(planName.size() == 0) {
+        planName = QString("Unnamed Flight Plan " + QString::number(flightData.size() + 1));
+    }
+
+    obj["name"] = planName;
     obj["plan_file_json"] = plan;
 
     QJsonDocument doc(obj);
@@ -173,14 +177,48 @@ void DataClass::uploadPlanToServer(QString location, QJsonObject plan, QString p
 void DataClass::readyReadFlightPlan()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
-    QString replyStr = reply->readAll();
-    DEBUG(replyStr)
+    QString replyStr = reply->readAll();     
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonObject jsonObjectReply = jsonReply.object();
+        addToFlightData(jsonObjectReply);
+
         emit planUploadSuccessful();
     }else{
         emit planUploadFailed();
     }
+}
+
+void DataClass::readyReadAllFlightPlans()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonArray jsonArray = jsonReply.array();
+        for(int i=0; i<jsonArray.size(); i++){
+            addToFlightData(jsonArray[i].toObject());
+        }
+        // emit signal of success
+
+    }else{
+        // emit signal of failure
+    }
+
+}
+
+void DataClass::addToFlightData(QJsonObject obj)
+{
+    FlightData data;
+
+    data.pilotID  = obj["id"].toString();
+    data.planName = obj["name"].toString();
+    data.plan     = obj["plan_file_json"].toObject();
+    // pilot data to be added
+
+    flightData.append(data);
 }
 
 //Clear Drone Data
@@ -190,5 +228,15 @@ void DataClass::clearDroneData()
     drone.uuid.clear();
     drone.publicKey.clear();
     drone.serialId.clear();
+}
+
+void DataClass::getAllFlightPlans()
+{
+    QString location = serverUrl + getAllFlightPlansUrl;
+
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
+    QNetworkReply* reply = manager.get(request);
+    connect(reply,&QNetworkReply::finished, this, &DataClass::readyReadAllFlightPlans);
 }
 

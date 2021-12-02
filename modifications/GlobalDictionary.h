@@ -14,6 +14,8 @@ static QStringList supportedflightControllers = { "PX4v", "Pixhawk", "fmuv", "Cu
 static QString checkDroneStatusUrl= "registry/aircraft/rfm/";
 static QString uploadPublicKeyUrl = "pki/credentials/";
 static QString uploadFlightPlanUrl = "gcs/flight-plans";
+static QString getAllFlightPlansUrl = "gcs/flight-plans";
+
 
 ///PATHS AND FILENAMES
 static QString pathOnBoardForPublicKeyDownload = "APM";
@@ -23,7 +25,5 @@ static QString configFileName = "config.xml";
 
 static QString checkDeviceConnectedTimerDuration = "500";
 static QString checkDroneStatusTimerDuration =  "5000";
-
-#define DEBUG(x) qDebug() << "Kshitiz : (" << #x << ")" << x;
 
 #endif // DICTIONARY_H
