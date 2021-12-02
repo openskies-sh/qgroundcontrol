@@ -182,6 +182,50 @@ Item {
 
 
     Component {
+        id: promptForPlanUpload
+
+        QGCViewDialog {
+            property string message: qsTr("Name of plan")
+
+            QGCFlickable {
+                anchors.fill:   parent
+                contentHeight:  label.contentHeight
+
+                QGCLabel {
+                    id:             label
+                    anchors.left:   parent.left
+                    anchors.right:  parent.right
+
+                    wrapMode:       Text.WordWrap
+                    text:           message
+                }
+
+                Rectangle{
+                    anchors.left:   parent.left
+                    anchors.right:  parent.right
+                    anchors.topMargin: 5
+                    anchors.top:    label.bottom
+                    height:         20
+                    color:          "gray"
+
+                    TextInput{
+                        id: promptForPlanUploadInputField
+                        anchors.fill:   parent
+                        anchors.margins: 5
+                        text: "Hello"
+                        color: "black"
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+            function accept() {
+                _planMasterController.uploadPlanToServer(promptForPlanUploadInputField.text)
+                hideDialog()
+            }
+        }
+    }
+
+    Component {
         id: firmwareOrVehicleMismatchUploadDialogComponent
         QGCViewMessage {
             message: qsTr("This Plan was created for a different firmware or vehicle type than the firmware/vehicle type of vehicle you are uploading to. " +
@@ -1196,7 +1240,8 @@ Item {
                     enabled:            !_planMasterController.syncInProgress
                     onClicked: {
                         dropPanel.hide()
-                       _planMasterController.uploadPlanToServer()
+                        mainWindow.showComponentDialog(promptForPlanUpload, qsTr("Plan Upload"), mainWindow.showDialogDefaultWidth, StandardButton.Ok | StandardButton.Cancel)
+                       //_planMasterController.uploadPlanToServer()
 
                     }
                 }

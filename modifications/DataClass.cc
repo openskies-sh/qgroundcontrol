@@ -152,13 +152,14 @@ void DataClass::readyReadPublicKey()
 /// POST REQUEST
 /// For more information refer "gcs/flight-plans" end point
 /// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
-void DataClass::uploadPlanToServer(QString location, QJsonObject plan){
+void DataClass::uploadPlanToServer(QString location, QJsonObject plan, QString planName){
 
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     request.setRawHeader("Content-Type", "application/json");
 
     QJsonObject obj;
+    // obj["plan_name"] = planName;
     obj["name"] = "FlightOperation";
     obj["plan_file_json"] = plan;
 
@@ -173,6 +174,7 @@ void DataClass::readyReadFlightPlan()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
+    DEBUG(replyStr)
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if(statusCode == 201 || statusCode == 200){
         emit planUploadSuccessful();

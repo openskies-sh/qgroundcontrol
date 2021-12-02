@@ -66,18 +66,18 @@ private:
     typedef void (FTPManager::*StateAckNakFn)    (const MavlinkFTP::Request* ackOrNak);
     typedef void (FTPManager::*StateTimeoutFn)          (void);
 
-    typedef struct {
+    typedef struct StateFunctions_t{
         StateBeginFn    beginFn;
         StateAckNakFn   ackNakFn;
         StateTimeoutFn  timeoutFn;
     } StateFunctions_t;
 
-    typedef struct  {
+    typedef struct  MissingData_t{
         uint32_t offset;
         uint32_t cBytesMissing;
     } MissingData_t;
 
-    typedef struct {
+    typedef struct DownloadState_t{
         uint8_t                 sessionId;
         uint32_t                expectedOffset;         ///< offset which should be coming next
         uint32_t                bytesWritten;
@@ -102,7 +102,7 @@ private:
         }
     } DownloadState_t;
 
-    typedef struct {
+    typedef struct UploadState_t{
         uint8_t                 sessionId;
         uint32_t                expectedOffset;         ///< offset which should be coming next
         uint32_t                bytesWritten;

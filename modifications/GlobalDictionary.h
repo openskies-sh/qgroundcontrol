@@ -24,4 +24,6 @@ static QString configFileName = "config.xml";
 static QString checkDeviceConnectedTimerDuration = "500";
 static QString checkDroneStatusTimerDuration =  "5000";
 
+#define DEBUG(x) qDebug() << "Kshitiz : (" << #x << ")" << x;
+
 #endif // DICTIONARY_H

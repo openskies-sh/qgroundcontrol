@@ -436,7 +436,7 @@ void PlanMasterController::loadFromFile(const QString& filename)
     }
 }
 
-void PlanMasterController::uploadPlanToServer()
+void PlanMasterController::uploadPlanToServer(QString planName)
 {
     QJsonObject planJson;
     qgcApp()->toolbox()->corePlugin()->preSaveToJson(this, planJson);
@@ -456,7 +456,7 @@ void PlanMasterController::uploadPlanToServer()
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
 
-    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl, planJson);
+    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl, planJson, planName);
 }
 
 QJsonDocument PlanMasterController::saveToJson()

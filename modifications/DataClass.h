@@ -54,7 +54,7 @@ public slots:
     ///This function makes a request to upload public key to the server.
     void uploadKeyToServer(QString location, QString pathOfKey);
     ///This function makes a request to upload flight plan to the server.
-    void uploadPlanToServer(QString location, QJsonObject plan);
+    void uploadPlanToServer(QString location, QJsonObject plan, QString planName);
     ///Clears drone data in between a QGroundControl session. Currently not used. But can be used if logout feature is implemented.
     void clearDroneData();
 
@@ -81,6 +81,11 @@ private:
         bool status;
         bool npntCheck;
     } drone;
+
+    struct FlightData{
+        QString planID;
+        QString pilotID;
+    };
 
     QNetworkAccessManager manager;
     QString accessToken;
