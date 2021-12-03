@@ -9,6 +9,9 @@ ConnectToServer::ConnectToServer(QObject *parent) : QObject(parent)
 
 void ConnectToServer::slotTokenNotGenerated()
 {
+    QMessageBox Error;
+    Error.setText("Couldnt fetch token from management server please check your internet connection");
+    Error.exec();
     emit connectionNotSuccessful();
 }
 

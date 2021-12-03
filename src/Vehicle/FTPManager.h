@@ -77,7 +77,7 @@ private:
         uint32_t cBytesMissing;
     } MissingData_t;
 
-    typedef struct {
+     struct DownloadState_t{
         uint8_t                 sessionId;
         uint32_t                expectedOffset;         ///< offset which should be coming next
         uint32_t                bytesWritten;
@@ -100,9 +100,9 @@ private:
             rgMissingData.clear();
             file.close();
         }
-    } DownloadState_t;
+    };
 
-    typedef struct {
+    struct UploadState_t{
         uint8_t                 sessionId;
         uint32_t                expectedOffset;         ///< offset which should be coming next
         uint32_t                bytesWritten;
@@ -125,7 +125,7 @@ private:
             rgMissingData.clear();
             file.close();
         }
-    } UploadState_t;
+    };
 
 
     void    _mavlinkMessageReceived     (const mavlink_message_t& message);

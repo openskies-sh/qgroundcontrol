@@ -75,6 +75,48 @@ import QGroundControl 1.0
                         indicator.height:rect1.height/20
 
                     }
+                    Timer {
+                        interval: 10000//10s
+                        onTriggered: text1.visible = true
+                        running: true
+                    }
+                    Text {
+                        id:text1
+                        y:parent.height+100
+                        visible: false
+                        text: (myrect.hardwareConnected?"":"Error:Failed To Connect Hardware")
+                        font.pixelSize:(rect1.width/25 + rect1.height/25 )/2
+                        color: "red"
+                    }
+                    Timer {
+                        interval: 14000//10s
+                        onTriggered: text2.visible = true
+                        running:(myrect.hardwareConnected?true:false)
+
+                    }
+                    Text{
+                        id:text2
+                        y:parent.height+100
+                        visible: false
+                        text: (myrect.droneIsActive?"":"Error:Drone is not active")
+                        font.pixelSize:(rect1.width/25 + rect1.height/25)/2
+                        color: "red"
+
+                    }
+                    Timer {
+                        interval: 14000//10s
+                        onTriggered: text3.visible = true
+                        running:(!(myrect.hardwareConnected)?false:(myrect.droneIsActive?true:false))
+                    }
+                    Text {
+                        y:parent.height+100
+                        id:text3
+                        visible: false
+                        text: (myrect.keyRotationCompleted?"":"Error:Unable to rotate key")
+                        font.pixelSize:(rect1.width/25 + rect1.height/25)/2
+                        color: "red"
+
+                    }
 
             }
 

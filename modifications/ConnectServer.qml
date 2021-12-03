@@ -26,7 +26,6 @@ Rectangle{
            font.pixelSize: myrect.width/50
            anchors.centerIn: parent
            anchors.verticalCenterOffset: - myrect.height/10
-
         }
 
 Image {
