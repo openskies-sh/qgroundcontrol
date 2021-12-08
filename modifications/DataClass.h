@@ -60,6 +60,14 @@ public slots:
 
     void getAllFlightPlans();
 
+    void getAllOperators();
+
+    void getAllPilots();
+
+    void createFlightOperationForPermission(QString operationName, QString flightPlanId);
+
+    void getFlightPermission();
+
 private slots:
     ///Reads the reply of generateToken request
     ///If token generation is successful it emits tokenGenerated() signal otherwise emits tokenNotGenerated()
@@ -75,6 +83,14 @@ private slots:
     void readyReadFlightPlan();
 
     void readyReadAllFlightPlans();
+
+    void readyReadAllOperators();
+
+    void readyReadAllPilots();
+
+    void readyReadFlightOperationForPermission();
+
+    void readyReadFlightPermission();
 
 
 
@@ -94,11 +110,14 @@ private:
     struct FlightData{
         QString planID;
         QString planName;
-        QString pilotID;
         QJsonObject plan;
     };
 
     QVector<FlightData> flightData;
+    QString operatorID;
+    QString pilotID;
+    QString flightOperationID;
+    QJsonObject flightPermission;
     QNetworkAccessManager manager;
     QString accessToken;
     QString configurationFilePath = QDir::currentPath() + "/" +configFileName;

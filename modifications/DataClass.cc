@@ -65,8 +65,10 @@ void DataClass::readyReadToken()
     QJsonObject jsonObject = jsonResponse.object();
     accessToken = jsonObject["access_token"].toString();
     if(accessToken!=""){
+        qDebug() << accessToken;
         emit tokenGenerated();
-        getAllFlightPlans();
+
+
     }
     else{
         emit tokenNotGenerated();
@@ -144,6 +146,11 @@ void DataClass::readyReadPublicKey()
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if(statusCode == 201 || statusCode == 200){
         emit keyUploadSuccessful();
+
+        // get all data from server
+        getAllFlightPlans();
+        getAllOperators();
+        getAllPilots();
     }else{
         emit keyUploadFailed();
     }
@@ -205,15 +212,116 @@ void DataClass::readyReadAllFlightPlans()
 
     }else{
         // emit signal of failure
+        qDebug() << "Failed to get Plans" << statusCode;
     }
 
+}
+
+void DataClass::readyReadAllOperators()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonArray jsonArray = jsonReply.array();
+        if(jsonArray.size() > 0){
+            operatorID = jsonArray[0].toObject()["id"].toString();
+            DEBUG(operatorID)
+            // emit signal of success
+        }
+        else{
+            // emit signal of failure
+            qDebug() << "Failed to read Operators";
+        }
+
+    }else{
+        // emit signal of failure
+        qDebug() << "Failed to get Operators"<< statusCode;
+    }
+}
+
+void DataClass::readyReadAllPilots()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonArray jsonArray = jsonReply.array();
+        if(jsonArray.size() > 0){
+            pilotID = jsonArray[0].toObject()["id"].toString();
+            DEBUG(pilotID)
+            createFlightOperationForPermission("Test KG_08", "1");
+            // emit signal of success
+        }
+        else{
+            // emit signal of failure
+            qDebug() << "Failed to read Pilots";
+        }
+
+    }else{
+        // emit signal of failure
+        qDebug() << "Failed to get Pilots" << statusCode;
+    }
+}
+
+void DataClass::readyReadFlightOperationForPermission()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonObject jsonObj = jsonReply.object();
+        if(!jsonObj.empty()){
+            flightOperationID = jsonObj["id"].toString();
+            DEBUG(flightOperationID)
+            getFlightPermission();
+            // emit signal of success
+        }
+        else{
+            // emit signal of failure
+            qDebug() << "Failed to read Flight Permission";
+        }
+
+    }else{
+        // emit signal of failure
+        qDebug() << "Failed to get Flight Permission" << statusCode << reply->readAll();
+    }
+
+}
+
+void DataClass::readyReadFlightPermission()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonObject jsonObj = jsonReply.object();
+        if(!jsonObj.empty()){
+            flightPermission = jsonObj;
+            DEBUG(flightPermission["id"])
+            getFlightPermission();
+            // emit signal of success
+        }
+        else{
+            // emit signal of failure
+            qDebug() << "Failed to read Flight Permission";
+        }
+
+    }else{
+        // emit signal of failure
+        qDebug() << "Failed to get Flight Permission" << statusCode;
+    }
 }
 
 void DataClass::addToFlightData(QJsonObject obj)
 {
     FlightData data;
 
-    data.pilotID  = obj["id"].toString();
+    data.planID  = obj["id"].toString();
     data.planName = obj["name"].toString();
     data.plan     = obj["plan_file_json"].toObject();
     // pilot data to be added
@@ -238,5 +346,66 @@ void DataClass::getAllFlightPlans()
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     QNetworkReply* reply = manager.get(request);
     connect(reply,&QNetworkReply::finished, this, &DataClass::readyReadAllFlightPlans);
+}
+
+void DataClass::getAllOperators()
+{
+    QString location = serverUrl + getAllOperatorsUrl;
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
+    QNetworkReply* reply = manager.get(request);
+    connect(reply,&QNetworkReply::finished, this, &DataClass::readyReadAllOperators);
+}
+
+void DataClass::getAllPilots()
+{
+    QString location = serverUrl + getAllPilotsUrl;
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
+    QNetworkReply* reply = manager.get(request);
+    connect(reply,&QNetworkReply::finished, this, &DataClass::readyReadAllPilots);
+}
+
+void DataClass::createFlightOperationForPermission(QString operationName, QString flightPlanId)
+{
+    QString location = serverUrl + createFlightOperationUrl;
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
+    request.setRawHeader("Content-Type", "application/json");
+
+    QJsonObject obj;
+    obj["name"] = operationName;
+    obj["type_of_operation"] = 0;
+    obj["drone"] = drone.uuid;
+    obj["flight_plan"] = flightData[0].planID; /// temp
+    obj["purpose"] = "26b6a66d-5e77-4a43-94e9-630e141a1087"; // temp
+    obj["operator"] = operatorID;
+    obj["pilot"] = pilotID;
+    QJsonDocument doc(obj);
+    QByteArray postData = doc.toJson();
+    qDebug() << "JSON" << QString(postData);
+
+    QNetworkReply* reply = manager.put(request, postData);
+    connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadFlightOperationForPermission);
+
+}
+
+void DataClass::getFlightPermission()
+{
+    QString location = serverUrl + getFlightPermissionUrl;
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
+    request.setRawHeader("Content-Type", "application/json");
+
+    QJsonObject obj;
+    QJsonDocument doc(obj);
+    QByteArray postData = doc.toJson();
+
+    QNetworkReply* reply = manager.put(request, postData);
+    connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadFlightPermission);
+
 }
 

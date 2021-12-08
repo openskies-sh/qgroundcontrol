@@ -15,6 +15,10 @@ static QString checkDroneStatusUrl= "registry/aircraft/rfm/";
 static QString uploadPublicKeyUrl = "pki/credentials/";
 static QString uploadFlightPlanUrl = "gcs/flight-plans";
 static QString getAllFlightPlansUrl = "gcs/flight-plans";
+static QString getAllOperatorsUrl = "registry/operators";
+static QString getAllPilotsUrl = "registry/pilots";
+static QString createFlightOperationUrl = "gcs/flight-operations";
+static QString getFlightPermissionUrl = "gcs/flight-operations/89b9ee2a-0c4a-47bd-bcd0-01cacd26bc58/permission";
 
 
 ///PATHS AND FILENAMES
@@ -26,4 +30,6 @@ static QString configFileName = "config.xml";
 static QString checkDeviceConnectedTimerDuration = "500";
 static QString checkDroneStatusTimerDuration =  "5000";
 
+
+#define DEBUG(x) qDebug() << #x << x;
 #endif // DICTIONARY_H
