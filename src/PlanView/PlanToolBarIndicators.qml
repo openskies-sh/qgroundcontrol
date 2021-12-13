@@ -237,7 +237,7 @@ Item {
         QGCButton {
             id:          uploadButton
             text:        _controllerDirty ? qsTr("Upload Required") : qsTr("Upload")
-            enabled:     !_controllerSyncInProgress
+            enabled:      !_planMasterController.offline && !_planMasterController.syncInProgress && _planMasterController.containsItems
             visible:     !_controllerOffline && !_controllerSyncInProgress && !uploadCompleteText.visible
             primary:     _controllerDirty
             onClicked:   _planMasterController.upload()

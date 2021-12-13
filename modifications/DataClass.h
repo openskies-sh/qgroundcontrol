@@ -45,6 +45,26 @@ signals:
     ///This signal is emitted whenever the droneID change is oberved by the QGroundControl.
     void droneIDChanged();
 
+    void getAllFlightPlansSuccessful();
+    void getAllFlightPlansFailed();
+    void getAllFlightPlansReturnedNull();
+
+    void getAllActivitiesSuccessful();
+    void getAllActivitiesFailed();
+    void getAllActivitiesReturnedNull();
+
+    void getAllOperatorsSuccessful();
+    void getAllOperatorsFailed();
+    void getAllOperatorsReturnedNull();
+
+    void getAllPilotsSuccessful();
+    void getAllPilotsFailed();
+    void getAllPilotsReturnedNull();
+
+    void createFlightOperationSuccessful();
+    void createFlightOperationFailed();
+
+
 
 public slots:
     ///This function makes the the request to the server to generate the auth token from clientID and clientSecret.
@@ -60,13 +80,16 @@ public slots:
 
     void getAllFlightPlans();
 
+    void getAllActivities();
+
     void getAllOperators();
 
     void getAllPilots();
 
-    void createFlightOperationForPermission(QString operationName, QString flightPlanId);
+    void createFlightOperation(QString operationName, QString flightPlanId);
 
     void getFlightPermission();
+
 
 private slots:
     ///Reads the reply of generateToken request
@@ -84,13 +107,15 @@ private slots:
 
     void readyReadAllFlightPlans();
 
+    void readyReadAllActivities();
+
     void readyReadAllOperators();
 
     void readyReadAllPilots();
 
-    void readyReadFlightOperationForPermission();
+    void readyReadCreateFlightOperation();
 
-    void readyReadFlightPermission();
+    void readyReadGetFlightPermission();
 
 
 
@@ -117,6 +142,7 @@ private:
     QString operatorID;
     QString pilotID;
     QString flightOperationID;
+    QString activityID;
     QJsonObject flightPermission;
     QNetworkAccessManager manager;
     QString accessToken;

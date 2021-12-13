@@ -1235,7 +1235,7 @@ Item {
                     Layout.columnSpan:  3
                     Layout.fillWidth:   true
                     text:               qsTr("Upload Plan File to Management Server")
-                    enabled:            !_planMasterController.syncInProgress
+                    enabled:            !_planMasterController.syncInProgress && _visualItems.count > 1
                     onClicked: {
                         dropPanel.hide()
                         mainWindow.showComponentDialog(promptForPlanUpload, qsTr("Plan Upload"), mainWindow.showDialogDefaultWidth, StandardButton.Ok | StandardButton.Cancel)
@@ -1255,35 +1255,12 @@ Item {
                 columnSpacing:      ScreenTools.defaultFontPixelWidth
                 visible:            storageSection.visible
 
-                RowLayout{
-                    Layout.fillWidth:   true
-                    spacing:            _margin
-                    visible:            vehicleSection.visible
-
-                    QGCLabel {
-                        id:                     planSelectionLabel
-                        anchors.left:           parent.left
-                        horizontalAlignment:    Text.AlignHCenter
-                        text:                   "Pick a Plan"
-                        color:                  "white"
-                    }
-
-                    QGCMenu{
-                        id: planMenu
-
-                        QGCMenuItem {
-                            text: "New..."
-                            onTriggered: document.reset()
-                        }
-                        QGCMenuItem {
-                            text: "Open..."
-                            onTriggered: openDialog.open()
-                        }
-                        QGCMenuItem {
-                            text: "Save"
-                            onTriggered: saveDialog.open()
-                        }
-                    }
+                QGCLabel {
+                    id:                     planSelectionLabel
+                    Layout.fillWidth:       true
+                    wrapMode:               Text.WordWrap
+                    text:                   "Pick a Plan"
+                    color:                  "white"
                 }
 
                 QGCButton {
