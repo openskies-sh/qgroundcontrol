@@ -188,7 +188,7 @@ void DataClass::readyReadFlightPlan()
     if(statusCode == 201 || statusCode == 200){
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
         QJsonObject jsonObjectReply = jsonReply.object();
-        addToFlightData(jsonObjectReply);
+        getAllFlightPlans();
         emit planUploadSuccessful();
     }else{
         emit planUploadFailed();
@@ -218,6 +218,7 @@ void DataClass::readyReadAllFlightPlans()
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
         QJsonArray jsonArray = jsonReply.array();
         if(jsonArray.size() > 0){
+            flightData.clear();
             for(int i=0; i<jsonArray.size(); i++){
                 addToFlightData(jsonArray[i].toObject());
             }
@@ -249,7 +250,6 @@ void DataClass::readyReadAllActivities()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
-    qInfo()<<replyStr;
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if(statusCode == 201 || statusCode == 200){
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
@@ -402,7 +402,6 @@ void DataClass::readyReadGetFlightPermission()
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
         QJsonObject jsonObj = jsonReply.object();
         if(!jsonObj.empty()){
-            flightPermission = jsonObj;
             // emit signal of success
         }
         else{

@@ -269,6 +269,10 @@ Item {
             }
         }
 
+//        onSelectedPlanIndexChanged: {
+//            displayAllPlans.currentIndex = selectedPlanIndex
+//        }
+
         function waitingOnIncompleteDataMessage(save) {
             var saveOrUpload = save ? qsTr("Save") : qsTr("Upload")
             mainWindow.showMessageDialog(qsTr("Unable to %1").arg(saveOrUpload), qsTr("Plan has incomplete items. Complete all items and %1 again.").arg(saveOrUpload))
@@ -1261,6 +1265,15 @@ Item {
                     wrapMode:               Text.WordWrap
                     text:                   "Pick a Plan"
                     color:                  "white"
+                }
+
+                ComboBox {
+                    id:             displayAllPlans
+                    model:          _planMasterController.getAllPlans
+                    currentIndex:   _planMasterController.selectedPlanIndex
+                    onCurrentIndexChanged: {
+                        _planMasterController.selectedPlanIndex = displayAllPlans.currentIndex;
+                    }
                 }
 
                 QGCButton {

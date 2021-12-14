@@ -18,6 +18,7 @@
 #include "MultiVehicleManager.h"
 #include "QGCLoggingCategory.h"
 #include "QmlObjectListModel.h"
+#include "DataClass.h"
 
 Q_DECLARE_LOGGING_CATEGORY(PlanMasterControllerLog)
 
@@ -50,8 +51,9 @@ public:
     Q_PROPERTY(QString                  currentPlanFile         READ currentPlanFile                        NOTIFY currentPlanFileChanged)
     Q_PROPERTY(QStringList              loadNameFilters         READ loadNameFilters                        CONSTANT)                       ///< File filter list loading plan files
     Q_PROPERTY(QStringList              saveNameFilters         READ saveNameFilters                        CONSTANT)                       ///< File filter list saving plan files
+    Q_PROPERTY(QStringList              getAllPlans             READ getAllPlans                            CONSTANT)
     Q_PROPERTY(QmlObjectListModel*      planCreators            MEMBER _planCreators                        NOTIFY planCreatorsChanged)
-
+    Q_PROPERTY(int                      selectedPlanIndex       READ selectedPlanIndex      WRITE setSelectedPlanIndex  NOTIFY selectedPlanIndexChanged)
     /// Should be called immediately upon Component.onCompleted.
     Q_INVOKABLE void start(void);
 
@@ -72,6 +74,7 @@ public:
     ///     @param[in] filename Plan file to load
     static void sendPlanToVehicle(Vehicle* vehicle, const QString& filename);
 
+    void selectAndLoadPlan(int selectedPlanId);
     Q_INVOKABLE void loadFromVehicle(void);
     Q_INVOKABLE void sendToVehicle(void);
     Q_INVOKABLE void loadFromFile(const QString& filename);
@@ -96,8 +99,20 @@ public:
     QString     currentPlanFile (void) const { return _currentPlanFile; }
     QStringList loadNameFilters (void) const;
     QStringList saveNameFilters (void) const;
+    QStringList getAllPlans     (void) const;
     bool        isEmpty         (void) const;
-
+    void setSelectedPlanIndex(int index){
+        if(index!=m_planIndex){
+            m_planIndex = index;
+            qDebug() << "planIndexChanged" << m_planIndex;
+            selectAndLoadPlan(m_planIndex);
+            emit selectedPlanIndexChanged();
+        }
+    }
+    int selectedPlanIndex(){
+        qDebug() << "planIndexRead" << m_planIndex;
+        return m_planIndex;
+    }
     void        setFlyView(bool flyView) { _flyView = flyView; }
 
     QJsonDocument saveToJson    ();
@@ -120,6 +135,7 @@ signals:
     void planCreatorsChanged                (QmlObjectListModel* planCreators);
     void managerVehicleChanged              (Vehicle* managerVehicle);
     void promptForPlanUsageOnVehicleChange  (void);
+    void selectedPlanIndexChanged();
 
 private slots:
     void _activeVehicleChanged      (Vehicle* activeVehicle);
@@ -155,5 +171,6 @@ private:
     QmlObjectListModel*     _planCreators =             nullptr;
     DataClass* _dataClass;
     QString m_url;
+    int m_planIndex = 0;
 
 };

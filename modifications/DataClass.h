@@ -23,6 +23,19 @@ class DataClass : public QObject
 public:
     explicit DataClass(QObject *parent = nullptr);
     QString getURL(){return serverUrl;}
+    QStringList getAllPlans(){
+        QStringList allPlans = {};
+        for(int i=0;i<flightData.length();i++){
+            allPlans.append(flightData[i].planName);
+        }
+        return allPlans;
+    }
+    QJsonObject getSelectedPlan(int selectedPlanIndex){
+        if(selectedPlanIndex<flightData.length()){
+            return flightData[selectedPlanIndex].plan;
+        }
+        return QJsonObject();
+    }
     bool checkdroneIDChanged(QString vehicleID);
 
 signals:
