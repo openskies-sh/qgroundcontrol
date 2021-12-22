@@ -337,18 +337,21 @@ void DataClass::readyReadAllPilots()
 /// For more information refer "gcs/flight-operations" end point
 /// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 
-void DataClass::createFlightOperation(QString operationName, QString flightPlanId)
+void DataClass::createFlightOperation(QString operationName, int planIndex, int operationType)
 {
     QString location = serverUrl + createFlightOperationUrl;
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     request.setRawHeader("Content-Type", "application/json");
-
+    QDateTime startTime = QDateTime::currentDateTimeUtc().addSecs(300);
+    QDateTime endTime = startTime.addSecs(1800);
     QJsonObject obj;
     obj["name"] = operationName;
-    obj["type_of_operation"] = 0;
+    obj["start_datetime"] = startTime.toString(Qt::ISODate);
+    obj["end_datetime"] = endTime.toString(Qt::ISODate);
+    obj["type_of_operation"] = operationType;
     obj["drone"] = drone.uuid;
-    obj["flight_plan"] = flightPlanId;
+    obj["flight_plan"] = flightData[planIndex].planID;
     obj["purpose"] = activityID;
     obj["operator"] = operatorID;
     obj["pilot"] = pilotID;
@@ -379,7 +382,7 @@ void DataClass::readyReadCreateFlightOperation()
 //*******************************************************************************************************************************************************************************
 void DataClass::getFlightPermission()
 {
-    QString location = serverUrl + getFlightPermissionUrl;
+    QString location = serverUrl + getFlightPermissionUrl.arg(flightOperationID);
     QNetworkRequest request = QNetworkRequest(location);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
@@ -402,7 +405,16 @@ void DataClass::readyReadGetFlightPermission()
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
         QJsonObject jsonObj = jsonReply.object();
         if(!jsonObj.empty()){
-            // emit signal of success
+            QString signature = jsonObj["token"].toObject()["access_token"].toString();
+            qDebug()<<signature;
+            if(isSignatureValid(signature)){
+                // emit signal of success
+                qDebug()<<"Signature Verified";
+
+            }
+            else{
+                qDebug()<<"Signature Not Valid/Expired";
+            }
         }
         else{
             // emit signal of failure
@@ -411,7 +423,7 @@ void DataClass::readyReadGetFlightPermission()
 
     }else{
         // emit signal of failure
-        //qDebug() << "Failed to get Flight Permission" << statusCode;
+        qDebug() << "Failed to get Flight Permission" << statusCode;
     }
 }
 //*******************************************************************************************************************************************************************************

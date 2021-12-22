@@ -459,6 +459,11 @@ void PlanMasterController::uploadPlanToServer(QString planName)
     _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl, planJson, planName);
 }
 
+void PlanMasterController::createOperation(QString operationName, int operationType)
+{
+    _dataClass->createFlightOperation(operationName, m_planIndex-1, operationType);
+}
+
 QJsonDocument PlanMasterController::saveToJson()
 {
     QJsonObject planJson;
@@ -557,6 +562,7 @@ void PlanMasterController::removeAll(void)
         _currentPlanFile.clear();
         emit currentPlanFileChanged();
     }
+
 }
 
 void PlanMasterController::removeAllFromVehicle(void)
@@ -644,7 +650,6 @@ void PlanMasterController::selectAndLoadPlan(int selectedPlanIndex)
     QString errorString;
     QString errorMessage = tr("Error loading Plan file (%1). %2").arg(getAllPlans()[selectedPlanIndex - 1]).arg("%1");
     QJsonObject json = _dataClass->getSelectedPlan(selectedPlanIndex - 1);
-    qDebug()<<json;
     if(json.length()==0){
         return;
     }

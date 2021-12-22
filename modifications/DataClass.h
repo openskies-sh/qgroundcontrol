@@ -13,6 +13,8 @@
 #include <qregexp.h>
 #include "GlobalDictionary.h"
 #include "QDir"
+#include <jwt-cpp/jwt-cpp/jwt.h>
+#include <QDateTime>
 
 ///This is the core class that handles the communications with the management server, stores all the data related to vehicle.
 /// This class is a singleton and never exposed to UI
@@ -99,7 +101,7 @@ public slots:
 
     void getAllPilots();
 
-    void createFlightOperation(QString operationName, QString flightPlanId);
+    void createFlightOperation(QString operationName, int planIndex, int operationType);
 
     void getFlightPermission();
 
@@ -167,6 +169,44 @@ private:
     QString scope;
     QString serverUrl;
     QString oAuthServerUrl;
+    QString serverPublicKey = R"(-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAt7RHafy7vKDaHmeP83f4
+W4npHfdwD9Y59pBbPxn3uX0vrTS8eBYkRI1tQqcsCfMa+KIz6aLoGPhL0IYFRsj0
+4882pv2MQTKdBWICGsTyzXws554RF/MLoGc5HFdqvhtXAsnSQRMk5/4sn4XcvRTt
+rt0klrKgfFQ0dpTTz9wTBYVmw5Ln4ccw5szHPeQHJOBpxY/0zoLqFxjVpgfOmEks
+LzX+uxMgUIj6A5iAW9St5ioHHIlrrU6PlcRKx/Z9FpD4rsXXH14FADq05x9RC7II
+GGeoAM6qNK8CiuCgnMaPbTw9Lpqs6oOT2/OzkLE+ksiZuxNfh50qBrhrl5JnWkTH
+rhkh5GsQmr3YEYIQxUi8H3Q7Q5qkxpmLp5I/MfUGGhfyeHqdMKdn0mPD9QQbVI9C
+PEOR/KnD7U/LiEktEgTcBLeuWz+T+tih9zK+Fvc5sgC8QmpSVRMyWPOu9O+yCopQ
++T5ggrCVidDbMaLAW2uFH3BgiNWbgGKSli71SVJr40kPkN7EVhZX8jeNtirGFhDX
+0V9n90qtcEIEIEXZnW/LSgImKWnaDjXlkCQajdXjBwXNli6lto+if1Wz9T0ueZfH
+rkKWk/mIeTQ6vg1RmgTcEcJgYLbUb+vHBWlUxxQ9tgDfjv5/4+M76j0HXy1q7d/u
+nuPEa5QVdyk85YJFN2THfqUCAwEAAQ==
+-----END PUBLIC KEY-----)";
+
+    bool isSignatureValid(QString data){
+        auto verify =
+        jwt::verify().allow_algorithm(jwt::algorithm::rs256(serverPublicKey.toStdString())).with_issuer("https://id.openskies.sh/");
+
+        auto decoded = jwt::decode(data.toStdString());
+
+        std::error_code c;
+        try {
+            verify.verify(decoded, c);
+            std::cout<<c.message()<<std::endl;
+            if(c.value() == 0){
+                return true;
+            }
+            else{
+                throw(c);
+            }
+        }
+        catch(const std::error_code& e)
+        {
+            std::cout << "Exception: " << e.message();
+        }
+        return false;
+    }
 
 };
 

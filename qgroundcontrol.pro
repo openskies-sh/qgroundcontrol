@@ -253,7 +253,7 @@ QT += \
     widgets \
     xml \
     texttospeech \
-    core-private
+    core-private \
 
 # Multimedia only used if QVC is enabled
 !contains (DEFINES, QGC_DISABLE_UVC) {
@@ -433,6 +433,10 @@ HEADERS += \
     modifications/GlobalDictionary.h \
     modifications/KeyRotationController.h \
     modifications/NpntControllerClass.h \
+    modifications/jwt-cpp/jwt-cpp/base.h \
+    modifications/jwt-cpp/jwt-cpp/jwt.h \
+    modifications/jwt-cpp/nlohmann/json.hpp \
+    modifications/jwt-cpp/picojson/picojson.h \
     src/QmlControls/QmlUnitsConversion.h \
     src/Vehicle/VehicleEscStatusFactGroup.h \
     src/api/QGCCorePlugin.h \
@@ -1450,3 +1454,10 @@ contains (CONFIG, QGC_DISABLE_INSTALLER_SETUP) {
 
 DISTFILES += \
     src/QmlControls/QGroundControl/Specific/qmldir
+
+
+INCLUDEPATH += $$PWD/libs/OpenSSL/linux_openssl/
+LIBS += $$PWD/libs/OpenSSL/linux_openssl/openssl/libcrypto.a -ldl -lpthread
+LIBS += $$PWD/libs/OpenSSL/linux_openssl/openssl/libssl.a
+
+

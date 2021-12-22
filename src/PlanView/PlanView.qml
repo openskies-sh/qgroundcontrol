@@ -208,16 +208,67 @@ Item {
                     color:          "white"
 
                     TextInput{
-                        id: promptForPlanUploadInputField
+                        id: planFileName
                         color: "black"
                         wrapMode: Text.WordWrap
-                        text: "PlanA"
+                        text: "Plan A"
                         font.pixelSize: 15
                     }
                 }
             }
             function accept() {
-                _planMasterController.uploadPlanToServer(promptForPlanUploadInputField.text)
+                _planMasterController.uploadPlanToServer(planFileName.text)
+                hideDialog()
+            }
+        }
+    }
+
+    Component {
+        id: promptForOperationDetails
+
+        QGCViewDialog {
+            id: viewDialog
+
+            QGCFlickable {
+                id: flick
+                anchors.fill:   parent
+                contentHeight:  label.contentHeight
+                ColumnLayout {
+                    spacing: 3
+                    QGCLabel {
+                        id:             label
+                        wrapMode:       Text.WordWrap
+                        text:           "Enter Operation Name"
+                    }
+                    Rectangle{
+                        height:         20
+                        color:          "white"
+                        width:          viewDialog.width
+
+                        TextInput{
+                            id: name
+                            color: "black"
+                            wrapMode: Text.WordWrap
+                            text: "Operation A"
+                            font.pixelSize: 15
+                        }
+                    }
+                    QGCLabel {
+                        id:             label2
+                        wrapMode:       Text.WordWrap
+                        text:           "Operation Type"
+                    }
+                    ComboBox{
+                        id: modeofOperation
+                        model: ListModel {
+                              ListElement {text: "VLOS";}
+                              ListElement { text: "BVLOS"}
+                        }
+                    }
+                }
+            }
+            function accept() {
+                _planMasterController.createOperation(name.text, modeofOperation.currentIndex)
                 hideDialog()
             }
         }
@@ -268,10 +319,6 @@ Item {
                 mainWindow.showPopupDialogFromComponent(promptForPlanUsageOnVehicleChangePopupComponent)
             }
         }
-
-//        onSelectedPlanIndexChanged: {
-//            displayAllPlans.currentIndex = selectedPlanIndex
-//        }
 
         function waitingOnIncompleteDataMessage(save) {
             var saveOrUpload = save ? qsTr("Save") : qsTr("Upload")
@@ -1026,6 +1073,7 @@ Item {
         QGCViewMessage {
             message: qsTr("Are you sure you want to remove all mission items and clear the mission from the vehicle?")
             function accept() {
+                _planMasterController.selectedPlanIndex = 0
                 _planMasterController.removeAllFromVehicle()
                 _missionController.setCurrentPlanViewSeqNum(0, true)
                 hideDialog()
@@ -1273,6 +1321,11 @@ Item {
                     currentIndex:   _planMasterController.selectedPlanIndex
                     onCurrentIndexChanged: {
                         _planMasterController.selectedPlanIndex = displayAllPlans.currentIndex;
+                        mapFitFunctions.fitMapViewportToMissionItems()
+                        if( displayAllPlans.currentIndex == 0){
+                            _planMasterController.removeAllFromVehicle();
+                            _missionController.setCurrentPlanViewSeqNum(0, true);
+                        }
                     }
                 }
 
@@ -1280,9 +1333,11 @@ Item {
                     Layout.columnSpan:  3
                     Layout.fillWidth:   true
                     text:               qsTr("Create Operation and Get Permission")
-                    enabled:            !_planMasterController.syncInProgress
+                    enabled:            !_planMasterController.syncInProgress && displayAllPlans.currentIndex
                     onClicked: {
                         dropPanel.hide()
+                        mainWindow.showComponentDialog(promptForOperationDetails, qsTr("Create Operation"), mainWindow.showDialogDefaultWidth, StandardButton.Ok | StandardButton.Cancel)
+
                     }
                 }
 

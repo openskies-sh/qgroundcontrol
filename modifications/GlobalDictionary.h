@@ -19,8 +19,7 @@ static QString getAllFlightPlansUrl = "gcs/flight-plans";
 static QString getAllOperatorsUrl = "registry/operators";
 static QString getAllPilotsUrl = "registry/pilots";
 static QString createFlightOperationUrl = "gcs/flight-operations";
-static QString getFlightPermissionUrl = "gcs/flight-operations/89b9ee2a-0c4a-47bd-bcd0-01cacd26bc58/permission";
-
+static QString getFlightPermissionUrl = "gcs/flight-operations/%1/permission";
 
 ///PATHS AND FILENAMES
 static QString pathOnBoardForPublicKeyDownload = "APM";

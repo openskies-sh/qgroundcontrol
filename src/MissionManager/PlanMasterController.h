@@ -79,6 +79,7 @@ public:
     Q_INVOKABLE void sendToVehicle(void);
     Q_INVOKABLE void loadFromFile(const QString& filename);
     Q_INVOKABLE void uploadPlanToServer(QString planName);
+    Q_INVOKABLE void createOperation(QString operationName, int operationType);
     Q_INVOKABLE void saveToCurrent();
     Q_INVOKABLE void saveToFile(const QString& filename);
     Q_INVOKABLE void saveToKml(const QString& filename);
@@ -104,13 +105,11 @@ public:
     void setSelectedPlanIndex(int index){
         if(index!=m_planIndex){
             m_planIndex = index;
-            qDebug() << "planIndexChanged" << m_planIndex;
             selectAndLoadPlan(m_planIndex);
             emit selectedPlanIndexChanged();
         }
     }
     int selectedPlanIndex(){
-        qDebug() << "planIndexRead" << m_planIndex;
         return m_planIndex;
     }
     void        setFlyView(bool flyView) { _flyView = flyView; }
