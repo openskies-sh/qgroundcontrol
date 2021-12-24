@@ -433,6 +433,7 @@ HEADERS += \
     modifications/GlobalDictionary.h \
     modifications/KeyRotationController.h \
     modifications/NpntControllerClass.h \
+    modifications/SignatureVerifier.h \
     modifications/jwt-cpp/jwt-cpp/base.h \
     modifications/jwt-cpp/jwt-cpp/jwt.h \
     modifications/jwt-cpp/nlohmann/json.hpp \
@@ -456,6 +457,7 @@ SOURCES += \
     modifications/DataClass.cc \
     modifications/KeyRotationController.cc \
     modifications/NpntControllerClass.cc \
+    modifications/SignatureVerifier.cc \
     src/Vehicle/VehicleEscStatusFactGroup.cc \
     src/api/QGCCorePlugin.cc \
     src/api/QGCOptions.cc \
@@ -1460,4 +1462,4 @@ INCLUDEPATH += $$PWD/libs/OpenSSL/linux_openssl/
 LIBS += $$PWD/libs/OpenSSL/linux_openssl/openssl/libcrypto.a -ldl -lpthread
 LIBS += $$PWD/libs/OpenSSL/linux_openssl/openssl/libssl.a
 
-
+INCLUDEPATH += $$PWD/libs/cppcodec/cppcodec/

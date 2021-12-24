@@ -13,8 +13,8 @@
 #include <qregexp.h>
 #include "GlobalDictionary.h"
 #include "QDir"
-#include <jwt-cpp/jwt-cpp/jwt.h>
 #include <QDateTime>
+#include <SignatureVerifier.h>
 
 ///This is the core class that handles the communications with the management server, stores all the data related to vehicle.
 /// This class is a singleton and never exposed to UI
@@ -62,22 +62,25 @@ signals:
 
     void getAllFlightPlansSuccessful();
     void getAllFlightPlansFailed();
-    void getAllFlightPlansReturnedNull();
 
     void getAllActivitiesSuccessful();
     void getAllActivitiesFailed();
-    void getAllActivitiesReturnedNull();
 
     void getAllOperatorsSuccessful();
     void getAllOperatorsFailed();
-    void getAllOperatorsReturnedNull();
 
     void getAllPilotsSuccessful();
     void getAllPilotsFailed();
-    void getAllPilotsReturnedNull();
 
     void createFlightOperationSuccessful();
     void createFlightOperationFailed();
+
+    void serverPublicKeyDownloadSuccessful();
+    void serverPublicKeyDownloadFailed();
+
+    void permissionGranted();
+    void permissionDenied();
+    void permissionPending();
 
 
 
@@ -87,8 +90,11 @@ public slots:
     ///This function makes a request to management server to check whether the drone is active or not.
     void checkDroneStatus(QString location);
     ///This function makes a request to upload public key to the server.
-    void uploadKeyToServer(QString location, QString pathOfKey);
+    void uploadDronePublicKeyToServer(QString location, QString pathOfKey);
     ///This function makes a request to upload flight plan to the server.
+
+    void getServerPublicKey();
+
     void uploadPlanToServer(QString location, QJsonObject plan, QString planName);
     ///Clears drone data in between a QGroundControl session. Currently not used. But can be used if logout feature is implemented.
     void clearDroneData();
@@ -115,9 +121,11 @@ private slots:
     void readyReadDroneStatus();
     ///Reads the reply of uploadKeyToServer request
     ///  If the server responds that the file is uploaded then keyUploadSuccessful() is emitted. Otherwise keyUploadFailed() is emitted
-    void readyReadPublicKey();
+    void readyReadUploadDronePublicKeyToServer();
     ///Reads the reply of uploadPlanToServer request.
     /// If the server responds that the plan is uploaded then planUploadSuccessful() is emitted. Otherwise planUploadFailed() is emitted
+
+    void readyReadGetServerPublicKey();
     void readyReadFlightPlan();
 
     void readyReadAllFlightPlans();
@@ -161,52 +169,29 @@ private:
     QJsonObject flightPermission;
     QNetworkAccessManager manager;
     QString accessToken;
-    QString configurationFilePath = QDir::currentPath() + "/" +configFileName;
+    QString configurationFilePath = QDir::currentPath() + "/" + AerobridgeGlobals::configFileName;
     QString clientId;
     QString clientSecret;
     QString audience;
     QString grantType;
     QString scope;
     QString serverUrl;
-    QString oAuthServerUrl;
-    QString serverPublicKey = R"(-----BEGIN PUBLIC KEY-----
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAt7RHafy7vKDaHmeP83f4
-W4npHfdwD9Y59pBbPxn3uX0vrTS8eBYkRI1tQqcsCfMa+KIz6aLoGPhL0IYFRsj0
-4882pv2MQTKdBWICGsTyzXws554RF/MLoGc5HFdqvhtXAsnSQRMk5/4sn4XcvRTt
-rt0klrKgfFQ0dpTTz9wTBYVmw5Ln4ccw5szHPeQHJOBpxY/0zoLqFxjVpgfOmEks
-LzX+uxMgUIj6A5iAW9St5ioHHIlrrU6PlcRKx/Z9FpD4rsXXH14FADq05x9RC7II
-GGeoAM6qNK8CiuCgnMaPbTw9Lpqs6oOT2/OzkLE+ksiZuxNfh50qBrhrl5JnWkTH
-rhkh5GsQmr3YEYIQxUi8H3Q7Q5qkxpmLp5I/MfUGGhfyeHqdMKdn0mPD9QQbVI9C
-PEOR/KnD7U/LiEktEgTcBLeuWz+T+tih9zK+Fvc5sgC8QmpSVRMyWPOu9O+yCopQ
-+T5ggrCVidDbMaLAW2uFH3BgiNWbgGKSli71SVJr40kPkN7EVhZX8jeNtirGFhDX
-0V9n90qtcEIEIEXZnW/LSgImKWnaDjXlkCQajdXjBwXNli6lto+if1Wz9T0ueZfH
-rkKWk/mIeTQ6vg1RmgTcEcJgYLbUb+vHBWlUxxQ9tgDfjv5/4+M76j0HXy1q7d/u
-nuPEa5QVdyk85YJFN2THfqUCAwEAAQ==
------END PUBLIC KEY-----)";
-
-    bool isSignatureValid(QString data){
-        auto verify =
-        jwt::verify().allow_algorithm(jwt::algorithm::rs256(serverPublicKey.toStdString())).with_issuer("https://id.openskies.sh/");
-
-        auto decoded = jwt::decode(data.toStdString());
-
-        std::error_code c;
-        try {
-            verify.verify(decoded, c);
-            std::cout<<c.message()<<std::endl;
-            if(c.value() == 0){
-                return true;
-            }
-            else{
-                throw(c);
-            }
+    QString oAuthServerAuthTokenUrl;
+    QString oAuthServerPublicKeyUrl;
+    std::string serverPublicKey;
+    enum PERMISSION_STATUS{
+        GRANTED = 0,
+        PENDING = 1,
+        DENIED = 2,
+    };
+    static QString PermissionStatus(PERMISSION_STATUS status){
+        switch (status) {
+        case 0: return "granted";
+        case 1: return "pending";
+        default: return "denied";
         }
-        catch(const std::error_code& e)
-        {
-            std::cout << "Exception: " << e.message();
-        }
-        return false;
     }
+
 
 };
 

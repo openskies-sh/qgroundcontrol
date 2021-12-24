@@ -875,9 +875,9 @@ void Vehicle::_handleStatusText(mavlink_message_t& message)
     b[b.length()-1] = '\0';
     messageText = QString(b);
     droneNumber = statustext.text;
-    for(int i=0;i<supportedflightControllers.length();i++)
+    for(int i=0;i<AerobridgeGlobals::supportedflightControllers.length();i++)
     {
-        if(droneNumber.contains(supportedflightControllers[i]))
+        if(droneNumber.contains(AerobridgeGlobals::supportedflightControllers[i]))
         {
             droneNumber = droneNumber.mid(droneNumber.indexOf(" ",Qt::CaseInsensitive),-1);
             droneNumber = droneNumber.simplified();

@@ -54,7 +54,8 @@ public:
     Q_PROPERTY(QStringList              getAllPlans             READ getAllPlans                            CONSTANT)
     Q_PROPERTY(QmlObjectListModel*      planCreators            MEMBER _planCreators                        NOTIFY planCreatorsChanged)
     Q_PROPERTY(int                      selectedPlanIndex       READ selectedPlanIndex      WRITE setSelectedPlanIndex  NOTIFY selectedPlanIndexChanged)
-    /// Should be called immediately upon Component.onCompleted.
+    Q_PROPERTY(bool                     permissionGranted       READ permissionGranted      WRITE setPermissionGranted NOTIFY permissionChanged)
+    /// Should be called immediately upon Component.onCompleted
     Q_INVOKABLE void start(void);
 
     /// Starts the controller using a single static active vehicle. Will not track global active vehicle changes.
@@ -105,12 +106,22 @@ public:
     void setSelectedPlanIndex(int index){
         if(index!=m_planIndex){
             m_planIndex = index;
+            setPermissionGranted(false);
             selectAndLoadPlan(m_planIndex);
             emit selectedPlanIndexChanged();
         }
     }
+    void setPermissionGranted(bool status){
+        if(status!=_permissionGranted){
+            _permissionGranted = status;
+            emit permissionChanged();
+        }
+    }
     int selectedPlanIndex(){
         return m_planIndex;
+    }
+    bool permissionGranted(){
+        return _permissionGranted;
     }
     void        setFlyView(bool flyView) { _flyView = flyView; }
 
@@ -135,8 +146,13 @@ signals:
     void managerVehicleChanged              (Vehicle* managerVehicle);
     void promptForPlanUsageOnVehicleChange  (void);
     void selectedPlanIndexChanged();
+    void permissionChanged();
+
+public slots:
+    void enableUploadButton();
 
 private slots:
+
     void _activeVehicleChanged      (Vehicle* activeVehicle);
     void _loadMissionComplete       (void);
     void _loadGeoFenceComplete      (void);
@@ -171,5 +187,6 @@ private:
     DataClass* _dataClass;
     QString m_url;
     int m_planIndex = 0;
+    bool _permissionGranted = false;
 
 };

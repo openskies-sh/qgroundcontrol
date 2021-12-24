@@ -1320,11 +1320,13 @@ Item {
                     model:          _planMasterController.getAllPlans
                     currentIndex:   _planMasterController.selectedPlanIndex
                     onCurrentIndexChanged: {
-                        _planMasterController.selectedPlanIndex = displayAllPlans.currentIndex;
-                        mapFitFunctions.fitMapViewportToMissionItems()
-                        if( displayAllPlans.currentIndex == 0){
+                        if( displayAllPlans.currentIndex == 0 && _planMasterController.selectedPlanIndex!=0){
                             _planMasterController.removeAllFromVehicle();
                             _missionController.setCurrentPlanViewSeqNum(0, true);
+                        }
+                        if(_planMasterController.selectedPlanIndex != displayAllPlans.currentIndex){
+                            _planMasterController.selectedPlanIndex = displayAllPlans.currentIndex;
+                            mapFitFunctions.fitMapViewportToMissionItems()
                         }
                     }
                 }
@@ -1357,7 +1359,7 @@ Item {
                 QGCButton {
                     text:               qsTr("Upload")
                     Layout.fillWidth:   true
-                    enabled:            !_planMasterController.offline && !_planMasterController.syncInProgress && _planMasterController.containsItems
+                    enabled:            !_planMasterController.offline && !_planMasterController.syncInProgress && _planMasterController.containsItems && _planMasterController.permissionGranted
                     visible:            !QGroundControl.corePlugin.options.disableVehicleConnection
                     onClicked: {
                         dropPanel.hide()

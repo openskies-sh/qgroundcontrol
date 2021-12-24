@@ -10,3 +10,7 @@
 [submodule "libs/qmlglsink/gst-plugins-good"]
 	path = libs/qmlglsink/gst-plugins-good
 	url = https://github.com/mavlink/gst-plugins-good.git
+
+[submodule "libs/cppcodec"]
+	path = libs/cppcodec
+	url = https://github.com/tplgy/cppcodec.git

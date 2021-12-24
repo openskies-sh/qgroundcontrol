@@ -23,8 +23,10 @@ DataClass::DataClass(QObject *parent) : QObject(parent)
                             scope = reader.readElementText();
                         }else if(reader.name() == "serverUrl"){
                             serverUrl = reader.readElementText();
-                        }else if(reader.name() == "oAuthServerUrl"){
-                            oAuthServerUrl = reader.readElementText();
+                        }else if(reader.name() == "oAuthServerAuthTokenUrl"){
+                            oAuthServerAuthTokenUrl = reader.readElementText();
+                        }else if(reader.name() == "oAuthServerPublicKeyUrl"){
+                            oAuthServerPublicKeyUrl = reader.readElementText();
                         }else{
                             reader.skipCurrentElement();
                         }
@@ -52,7 +54,7 @@ bool DataClass::checkdroneIDChanged(QString vehicleID){
 //TOKEN REQUEST
 void DataClass::generateToken()
 {
-    QNetworkRequest request = QNetworkRequest(QUrl(oAuthServerUrl));
+    QNetworkRequest request = QNetworkRequest(QUrl(oAuthServerAuthTokenUrl));
     request.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
     QByteArray postData = QUrl(QString("client_id=%1&client_secret=%2&audience=%3&scope=%4&grant_type=%5").arg(clientId,clientSecret,audience,scope,grantType)).toEncoded();
     QNetworkReply* reply = manager.post(request, postData);
@@ -95,22 +97,27 @@ void DataClass::readyReadDroneStatus()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
-    QJsonDocument jsonResponse = QJsonDocument::fromJson(replyStr.toUtf8());
-    QJsonObject jsonObject = jsonResponse.object();
-    drone.status = jsonObject["status"].toInt();
-    drone.uuid = jsonObject["id"].toString();
-    if(drone.status){
-        emit droneActive();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonObject jsonObject = jsonResponse.object();
+        drone.status = jsonObject["status"].toInt();
+        drone.uuid = jsonObject["id"].toString();
+        if(drone.status){
+            emit droneActive();
+        }else{
+            emit droneNotActive();
+        }
     }else{
-        emit droneNotActive();
+        //emit failure
     }
 }
 //*******************************************************************************************************************************************************************************
-//PUBLIC KEY ROTATION
+//DRONE PUBLIC KEY ROTATION
 /// POST REQUEST
 /// For more information refer "pki/credentials/" end point
 /// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
-void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
+void DataClass::uploadDronePublicKeyToServer(QString location, QString pathOfKey)
 {
     QString contentOfKey;
     QFile file(pathOfKey);
@@ -134,23 +141,62 @@ void DataClass::uploadKeyToServer(QString location, QString pathOfKey)
     QByteArray postData = doc.toJson();
 
     QNetworkReply* reply = manager.post(request, postData);
-    connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadPublicKey);
+    connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadUploadDronePublicKeyToServer);
 }
 
-void DataClass::readyReadPublicKey()
+void DataClass::readyReadUploadDronePublicKeyToServer()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
     int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if(statusCode == 201 || statusCode == 200){
         emit keyUploadSuccessful();
-        // GET ALL THE DATA FROM SERVER
-        getAllActivities();
-        getAllFlightPlans();
-        getAllOperators();
-        getAllPilots();
+        getServerPublicKey();
     }else{
         emit keyUploadFailed();
+    }
+
+}
+//*******************************************************************************************************************************************************************************
+//SERVER PUBLIC KEY ROTATION
+/// GET REQUEST
+void DataClass::getServerPublicKey()
+{
+    QString location = oAuthServerPublicKeyUrl;
+    QNetworkRequest request = QNetworkRequest(location);
+    request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
+    QNetworkReply* reply = manager.get(request);
+    connect(reply,&QNetworkReply::finished, this, &DataClass::readyReadGetServerPublicKey);
+}
+
+void DataClass::readyReadGetServerPublicKey()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString replyStr = reply->readAll();
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonArray jsonArray = jsonReply.object()["keys"].toArray();
+        if(jsonArray.size() > 0){
+            QJsonObject jwks = jsonArray[0].toObject();
+            std::string e = jwks["e"].toString().toStdString();
+            std::string kid = jwks["kid"].toString().toStdString();
+            std::string n = jwks["n"].toString().toStdString();
+            if(!SignatureVerifier::convertJwkToPem(n,e,kid,serverPublicKey)){
+                emit serverPublicKeyDownloadFailed();
+                return;
+            }
+            emit serverPublicKeyDownloadSuccessful();
+            // GET ALL THE DATA FROM SERVER
+            getAllActivities();
+            getAllFlightPlans();
+            getAllOperators();
+            getAllPilots();
+        }else{
+            emit serverPublicKeyDownloadFailed();
+        }
+    }else{
+        emit serverPublicKeyDownloadFailed();
     }
 
 }
@@ -202,7 +248,7 @@ void DataClass::readyReadFlightPlan()
 
 void DataClass::getAllFlightPlans()
 {
-    QString location = serverUrl + getAllFlightPlansUrl;
+    QString location = serverUrl + AerobridgeGlobals::getAllFlightPlansUrl;
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     QNetworkReply* reply = manager.get(request);
@@ -225,7 +271,7 @@ void DataClass::readyReadAllFlightPlans()
              emit getAllFlightPlansSuccessful();
         }
         else{
-            emit getAllFlightPlansReturnedNull();
+            emit getAllFlightPlansFailed();
         }
     }else{
         emit getAllFlightPlansFailed();
@@ -238,7 +284,7 @@ void DataClass::readyReadAllFlightPlans()
 /// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::getAllActivities()
 {
-    QString location = serverUrl + getAllActivitiesUrl;
+    QString location = serverUrl + AerobridgeGlobals::getAllActivitiesUrl;
     QNetworkRequest request = QNetworkRequest(location);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
@@ -258,7 +304,7 @@ void DataClass::readyReadAllActivities()
             activityID = jsonArray[0].toObject()["id"].toString();
             emit getAllActivitiesSuccessful();
         }else{
-            emit getAllActivitiesReturnedNull();
+            emit getAllActivitiesFailed();
         }
     }else{
         emit getAllActivitiesFailed();
@@ -271,7 +317,7 @@ void DataClass::readyReadAllActivities()
 /// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::getAllOperators()
 {
-    QString location = serverUrl + getAllOperatorsUrl;
+    QString location = serverUrl + AerobridgeGlobals::getAllOperatorsUrl;
     QNetworkRequest request = QNetworkRequest(location);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
@@ -291,7 +337,7 @@ void DataClass::readyReadAllOperators()
             operatorID = jsonArray[0].toObject()["id"].toString();
             emit getAllOperatorsSuccessful();
         }else{
-            emit getAllOperatorsReturnedNull();
+            emit getAllOperatorsFailed();
         }
     }else{
         emit getAllOperatorsFailed();
@@ -305,7 +351,7 @@ void DataClass::readyReadAllOperators()
 
 void DataClass::getAllPilots()
 {
-    QString location = serverUrl + getAllPilotsUrl;
+    QString location = serverUrl + AerobridgeGlobals::getAllPilotsUrl;
     QNetworkRequest request = QNetworkRequest(location);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
@@ -325,7 +371,7 @@ void DataClass::readyReadAllPilots()
             pilotID = jsonArray[0].toObject()["id"].toString();
             emit getAllPilotsSuccessful();
         }else{
-             emit getAllPilotsReturnedNull();
+             emit getAllPilotsFailed();
         }
     }else{
              emit getAllPilotsFailed();
@@ -339,7 +385,7 @@ void DataClass::readyReadAllPilots()
 
 void DataClass::createFlightOperation(QString operationName, int planIndex, int operationType)
 {
-    QString location = serverUrl + createFlightOperationUrl;
+    QString location = serverUrl + AerobridgeGlobals::createFlightOperationUrl;
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     request.setRawHeader("Content-Type", "application/json");
@@ -382,7 +428,7 @@ void DataClass::readyReadCreateFlightOperation()
 //*******************************************************************************************************************************************************************************
 void DataClass::getFlightPermission()
 {
-    QString location = serverUrl + getFlightPermissionUrl.arg(flightOperationID);
+    QString location = serverUrl + AerobridgeGlobals::getFlightPermissionUrl.arg(flightOperationID);
     QNetworkRequest request = QNetworkRequest(location);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
@@ -405,25 +451,26 @@ void DataClass::readyReadGetFlightPermission()
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
         QJsonObject jsonObj = jsonReply.object();
         if(!jsonObj.empty()){
+            QString permissionStatus = jsonObj["status_code"].toString();
+            if(permissionStatus == PermissionStatus(PERMISSION_STATUS::DENIED)||permissionStatus == PermissionStatus(PERMISSION_STATUS::PENDING)){
+                return;
+            }
             QString signature = jsonObj["token"].toObject()["access_token"].toString();
-            qDebug()<<signature;
-            if(isSignatureValid(signature)){
-                // emit signal of success
+            if(SignatureVerifier::verifyJWT(signature.toStdString(),serverPublicKey) == 0){
+                 emit permissionGranted();
                 qDebug()<<"Signature Verified";
 
             }
             else{
-                qDebug()<<"Signature Not Valid/Expired";
+               // emit signal of failure
             }
         }
         else{
-            // emit signal of failure
-            qDebug() << "Failed to read Flight Permission";
+             // emit signal of failure
         }
 
     }else{
-        // emit signal of failure
-        qDebug() << "Failed to get Flight Permission" << statusCode;
+         //emit signal of failure
     }
 }
 //*******************************************************************************************************************************************************************************

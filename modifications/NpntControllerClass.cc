@@ -25,7 +25,7 @@ NpntControllerClass::NpntControllerClass(QObject *parent) : QObject(parent)
 bool NpntControllerClass::checkdeviceConnected()
 {
     if(!qgcApp()->toolbox()->multiVehicleManager()->activeVehicleAvailable()){
-        checkDeviceConnectedTimer->start(checkDeviceConnectedTimerDuration.toInt());
+        checkDeviceConnectedTimer->start(AerobridgeGlobals::checkDeviceConnectedTimerDuration);
         return false;
     }
     checkDeviceConnectedTimer->stop();
@@ -36,8 +36,8 @@ bool NpntControllerClass::checkdeviceConnected()
 
 bool NpntControllerClass::checkIsBoardActive()
 {
-      _dataClass->checkDroneStatus(m_url+checkDroneStatusUrl);
-      checkDroneStatusTimer->start(checkDroneStatusTimerDuration.toInt());
+      _dataClass->checkDroneStatus(m_url+AerobridgeGlobals::checkDroneStatusUrl);
+      checkDroneStatusTimer->start(AerobridgeGlobals::checkDroneStatusTimerDuration);
       return true;
 }
 
@@ -57,7 +57,7 @@ bool NpntControllerClass::keyRotation()
 {
     if(!keyRotating){
         keyRotating = true;
-        m_keyController->startKeyRotation(m_url+uploadPublicKeyUrl);
+        m_keyController->startKeyRotation(m_url+AerobridgeGlobals::uploadPublicKeyUrl);
         return true;
     }
     return false;

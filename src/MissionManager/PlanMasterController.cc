@@ -46,9 +46,9 @@ PlanMasterController::PlanMasterController(QObject* parent)
     , _geoFenceController   (this)
     , _rallyPointController (this)
 {
-    _commonInit();
     _dataClass              = qgcApp()->getDataClass();
     m_url                   = qgcApp()->getDataClass()->getURL();
+    _commonInit();
 }
 
 #ifdef QT_DEBUG
@@ -81,6 +81,8 @@ void PlanMasterController::_commonInit(void)
 
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
+
+    connect(_dataClass, SIGNAL(permissionGranted()), this, SLOT(enableUploadButton()));
 }
 
 PlanMasterController::~PlanMasterController()
@@ -456,7 +458,7 @@ void PlanMasterController::uploadPlanToServer(QString planName)
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
 
-    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl, planJson, planName);
+    _dataClass->uploadPlanToServer(m_url+ AerobridgeGlobals::uploadFlightPlanUrl, planJson, planName);
 }
 
 void PlanMasterController::createOperation(QString operationName, int operationType)
@@ -484,6 +486,10 @@ QJsonDocument PlanMasterController::saveToJson()
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
     return QJsonDocument(planJson);
+}
+
+void PlanMasterController::enableUploadButton(){
+    setPermissionGranted(true);
 }
 
 void
