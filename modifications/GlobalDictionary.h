@@ -8,11 +8,7 @@
 
 namespace AerobridgeGlobals {
 
-    ///List of supported FlightControllers
     const QStringList supportedflightControllers = { "PX4v", "Pixhawk", "fmuv", "CubeOrange", "CUAV"};
-
-    ///API end-points
-    /// For more information visit: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
     const QString checkDroneStatusUrl= "registry/aircraft/rfm/";
     const QString uploadPublicKeyUrl = "pki/credentials/";
     const QString uploadFlightPlanUrl = "gcs/flight-plans";
@@ -22,13 +18,10 @@ namespace AerobridgeGlobals {
     const QString getAllPilotsUrl = "registry/pilots";
     const QString createFlightOperationUrl = "gcs/flight-operations";
     const QString getFlightPermissionUrl = "gcs/flight-operations/%1/permission";
-
-    ///PATHS AND FILENAMES
-    const QString pathOnBoardForPublicKeyDownload = "APM";
-    const QString publicKeyFilename = "key.pem";
-    const QString pathOnSystemForDronePulicKeyStorage = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    const QString pathOnBoardForPublicKeyDownload = "APM/";
+    const QString dronePublicKeyFilename = "dronePublicKey.pem";
+    const QString pathOnSystemForPublicKeyStorage = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     const QString configFileName = "config.xml";
-
     const int checkDeviceConnectedTimerDuration = 500;
     const int checkDroneStatusTimerDuration =  5000;
 

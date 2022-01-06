@@ -457,7 +457,6 @@ void PlanMasterController::uploadPlanToServer(QString planName)
     planJson[kJsonGeoFenceObjectKey] = fenceJson;
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
-
     _dataClass->uploadPlanToServer(m_url+ AerobridgeGlobals::uploadFlightPlanUrl, planJson, planName);
 }
 

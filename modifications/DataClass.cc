@@ -1,4 +1,4 @@
-#include "DataClass.h"
+﻿#include "DataClass.h"
 #include "QXmlStreamReader"
 
 DataClass::DataClass(QObject *parent) : QObject(parent)
@@ -33,6 +33,7 @@ DataClass::DataClass(QObject *parent) : QObject(parent)
                     }
                 }
             }
+            file.close();
     }else{
         qDebug()<<"Unable to load configuration file";
     }
@@ -47,6 +48,12 @@ bool DataClass::checkdroneIDChanged(QString vehicleID){
     drone.serialId = vehicleID;
     emit droneIDChanged();
     return true;
+}
+
+void DataClass::showMessage(QString msg, int errorCode)
+{
+    msgBox.setText(msg + " " + errorCodeToString(errorCode));
+    msgBox.exec();
 }
 
 //API CALLS START
@@ -65,21 +72,21 @@ void DataClass::readyReadToken()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString replyStr = reply->readAll();
-    QJsonDocument jsonResponse = QJsonDocument::fromJson(replyStr.toUtf8());
-    QJsonObject jsonObject = jsonResponse.object();
-    accessToken = jsonObject["access_token"].toString();
-    if(accessToken!=""){
-        emit tokenGenerated();
-    }
-    else{
+    int statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if(statusCode == 201 || statusCode == 200){
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(replyStr.toUtf8());
+        QJsonObject jsonObject = jsonResponse.object();
+        accessToken = jsonObject["access_token"].toString();
+        if(accessToken!=""){
+            emit tokenGenerated();
+        }
+    }else{
         emit tokenNotGenerated();
+        showMessage("Unable to Connect to Server", statusCode);
     }
 }
 //*******************************************************************************************************************************************************************************
 //DRONE STATUS CHECK
-/// GET REQUEST
-/// For more information refer "registry/aircraft/rfm/" end point
-/// For more information visit: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::checkDroneStatus(QString location)
 {
     location = location + drone.serialId;
@@ -90,7 +97,6 @@ void DataClass::checkDroneStatus(QString location)
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     QNetworkReply* reply = manager.get(request);
     connect(reply,&QNetworkReply::finished, this, &DataClass::readyReadDroneStatus);
-
 }
 
 void DataClass::readyReadDroneStatus()
@@ -107,16 +113,17 @@ void DataClass::readyReadDroneStatus()
             emit droneActive();
         }else{
             emit droneNotActive();
+            showMessage("Drone Not Active", -1);
         }
-    }else{
-        //emit failure
+    }else if(statusCode == 404){
+        showMessage("The drone is not registered", -1);
+    }
+    else{
+        showMessage("Unable to Connect to Server", statusCode);
     }
 }
 //*******************************************************************************************************************************************************************************
 //DRONE PUBLIC KEY ROTATION
-/// POST REQUEST
-/// For more information refer "pki/credentials/" end point
-/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::uploadDronePublicKeyToServer(QString location, QString pathOfKey)
 {
     QString contentOfKey;
@@ -153,13 +160,12 @@ void DataClass::readyReadUploadDronePublicKeyToServer()
         emit keyUploadSuccessful();
         getServerPublicKey();
     }else{
+        showMessage("Unable to Upload Drone Public Key to Server", statusCode);
         emit keyUploadFailed();
     }
-
 }
 //*******************************************************************************************************************************************************************************
 //SERVER PUBLIC KEY ROTATION
-/// GET REQUEST
 void DataClass::getServerPublicKey()
 {
     QString location = oAuthServerPublicKeyUrl;
@@ -193,18 +199,16 @@ void DataClass::readyReadGetServerPublicKey()
             getAllOperators();
             getAllPilots();
         }else{
+            showMessage("Unable to Fetch Public Key of Server", -1);
             emit serverPublicKeyDownloadFailed();
         }
     }else{
+        showMessage("Unable to Fetch Public Key of Server", statusCode);
         emit serverPublicKeyDownloadFailed();
     }
-
 }
 //*******************************************************************************************************************************************************************************
 // UPLOAD FLIGHT PLAN
-/// POST REQUEST
-/// For more information refer "gcs/flight-plans" end point
-/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::uploadPlanToServer(QString location, QJsonObject plan, QString planName){
 
     QNetworkRequest request = QNetworkRequest(location);
@@ -213,7 +217,7 @@ void DataClass::uploadPlanToServer(QString location, QJsonObject plan, QString p
 
     QJsonObject obj;
     if(planName.size() == 0) {
-        planName = QString("Unnamed Flight Plan " + QString::number(flightData.size() + 1));
+        planName = QString("Plan_" + QDateTime::currentDateTime().toString());
     }
 
     obj["name"] = planName;
@@ -234,18 +238,16 @@ void DataClass::readyReadFlightPlan()
     if(statusCode == 201 || statusCode == 200){
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
         QJsonObject jsonObjectReply = jsonReply.object();
-        getAllFlightPlans();
+        showMessage("Flight Plan Uploaded Successfully", -1);
         emit planUploadSuccessful();
+        getAllFlightPlans();
     }else{
+        showMessage("Unable to Upload Flight Plan", statusCode);
         emit planUploadFailed();
     }
 }
 //*******************************************************************************************************************************************************************************
 // GET ALL FLIGHT PLANS
-/// GET REQUEST
-/// For more information refer "gcs/flight-plans" end point
-/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
-
 void DataClass::getAllFlightPlans()
 {
     QString location = serverUrl + AerobridgeGlobals::getAllFlightPlansUrl;
@@ -275,13 +277,10 @@ void DataClass::readyReadAllFlightPlans()
         }
     }else{
         emit getAllFlightPlansFailed();
+        showMessage("Unable to get flight plans from management server", statusCode);
     }
 }
 //*******************************************************************************************************************************************************************************
-// GET ALL ACTIVITIES
-/// GET REQUEST
-/// For more information refer "registry/activities" end point
-/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::getAllActivities()
 {
     QString location = serverUrl + AerobridgeGlobals::getAllActivitiesUrl;
@@ -308,13 +307,11 @@ void DataClass::readyReadAllActivities()
         }
     }else{
         emit getAllActivitiesFailed();
+        showMessage("Unable to get activites from management server", statusCode);
     }
 }
 //*******************************************************************************************************************************************************************************
 // GET ALL OPERATORS
-/// GET REQUEST
-/// For more information refer "registry/operators" end point
-/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
 void DataClass::getAllOperators()
 {
     QString location = serverUrl + AerobridgeGlobals::getAllOperatorsUrl;
@@ -341,14 +338,11 @@ void DataClass::readyReadAllOperators()
         }
     }else{
         emit getAllOperatorsFailed();
+        showMessage("Unable to get operators from management server", statusCode);
     }
 }
 //*******************************************************************************************************************************************************************************
 // GET ALL PILOTS
-/// GET REQUEST
-/// For more information refer "registry/pilots" end point
-/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
-
 void DataClass::getAllPilots()
 {
     QString location = serverUrl + AerobridgeGlobals::getAllPilotsUrl;
@@ -374,18 +368,18 @@ void DataClass::readyReadAllPilots()
              emit getAllPilotsFailed();
         }
     }else{
-             emit getAllPilotsFailed();
+        emit getAllPilotsFailed();
+        showMessage("Unable to get pilots from management server", statusCode);
     }
 }
 //*******************************************************************************************************************************************************************************
 //CREATE FLIGHT OPERATION
-/// PUT REQUEST
-/// For more information refer "gcs/flight-operations" end point
-/// Management Server API documentation: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
-
 void DataClass::createFlightOperation(QString operationName, int planIndex, int operationType)
 {
     QString location = serverUrl + AerobridgeGlobals::createFlightOperationUrl;
+    if(operationName.size() == 0) {
+        operationName = QString("Operation_" + QDateTime::currentDateTime().toString());
+    }
     QNetworkRequest request = QNetworkRequest(location);
     request.setRawHeader("Authorization",QByteArray("Bearer ").append(accessToken));
     request.setRawHeader("Content-Type", "application/json");
@@ -403,9 +397,8 @@ void DataClass::createFlightOperation(QString operationName, int planIndex, int 
     obj["pilot"] = pilotID;
     QJsonDocument doc(obj);
     QByteArray postData = doc.toJson();
-    QNetworkReply* reply = manager.put(request, postData);
+    QNetworkReply* reply = manager.post(request, postData);
     connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadCreateFlightOperation);
-
 }
 
 void DataClass::readyReadCreateFlightOperation()
@@ -419,9 +412,11 @@ void DataClass::readyReadCreateFlightOperation()
         if(!jsonObj.empty()){
             flightOperationID = jsonObj["id"].toString();
             emit createFlightOperationSuccessful();
+            showMessage("Flight Operation Created\nWaiting for Clearance from the Management Server", -1);
             getFlightPermission();
         }else{
              emit createFlightOperationFailed();
+             showMessage("Unable to Create Flight Operation", statusCode);
         }
     }
 }
@@ -437,7 +432,6 @@ void DataClass::getFlightPermission()
     QJsonObject obj;
     QJsonDocument doc(obj);
     QByteArray postData = doc.toJson();
-
     QNetworkReply* reply = manager.put(request, postData);
     connect(reply, &QNetworkReply::finished, this, &DataClass::readyReadGetFlightPermission);
 
@@ -452,25 +446,21 @@ void DataClass::readyReadGetFlightPermission()
         QJsonObject jsonObj = jsonReply.object();
         if(!jsonObj.empty()){
             QString permissionStatus = jsonObj["status_code"].toString();
-            if(permissionStatus == PermissionStatus(PERMISSION_STATUS::DENIED)||permissionStatus == PermissionStatus(PERMISSION_STATUS::PENDING)){
+            if((permissionStatus == "denied")||(permissionStatus == "pending")){
+                showMessage("Response: Not Permitted to Fly. Try Again Later",-1);
                 return;
             }
             QString signature = jsonObj["token"].toObject()["access_token"].toString();
             if(SignatureVerifier::verifyJWT(signature.toStdString(),serverPublicKey) == 0){
                  emit permissionGranted();
-                qDebug()<<"Signature Verified";
-
+                 showMessage("Response: Permission Granted",-1);
             }
             else{
-               // emit signal of failure
+               showMessage("Signature Not Verified",-1);
             }
         }
-        else{
-             // emit signal of failure
-        }
-
     }else{
-         //emit signal of failure
+        showMessage("Unable to get flight permission",statusCode);
     }
 }
 //*******************************************************************************************************************************************************************************
@@ -481,7 +471,6 @@ void DataClass::addToFlightData(QJsonObject obj)
     data.planID  = obj["id"].toString();
     data.planName = obj["name"].toString();
     data.plan     = obj["plan_file_json"].toObject();
-    // pilot data to be added
     flightData.append(data);
 }
 

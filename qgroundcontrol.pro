@@ -1462,4 +1462,4 @@ INCLUDEPATH += $$PWD/libs/OpenSSL/linux_openssl/
 LIBS += $$PWD/libs/OpenSSL/linux_openssl/openssl/libcrypto.a -ldl -lpthread
 LIBS += $$PWD/libs/OpenSSL/linux_openssl/openssl/libssl.a
 
-INCLUDEPATH += $$PWD/libs/cppcodec/cppcodec/
+INCLUDEPATH += $$PWD/libs/cppcodec/

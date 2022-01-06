@@ -33,7 +33,6 @@ ApplicationWindow {
 
     NpntProcess{
         id:npnt
-
     }
 
     ConnectServer{
@@ -46,6 +45,7 @@ ApplicationWindow {
         onConnectionSuccessful: {
             connect.visible = false;
             npnt.visible = true;
+            npntcontroller.checkdeviceConnected();
         }
     }
 

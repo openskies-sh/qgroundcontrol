@@ -211,13 +211,15 @@ Item {
                         id: planFileName
                         color: "black"
                         wrapMode: Text.WordWrap
-                        text: "Plan A"
                         font.pixelSize: 15
+                        text: "Plan A"
                     }
                 }
             }
             function accept() {
                 _planMasterController.uploadPlanToServer(planFileName.text)
+                _planMasterController.removeAllFromVehicle()
+                _missionController.setCurrentPlanViewSeqNum(0, true)
                 hideDialog()
             }
         }
@@ -249,8 +251,8 @@ Item {
                             id: name
                             color: "black"
                             wrapMode: Text.WordWrap
-                            text: "Operation A"
                             font.pixelSize: 15
+                            text: "Operation A"
                         }
                     }
                     QGCLabel {
