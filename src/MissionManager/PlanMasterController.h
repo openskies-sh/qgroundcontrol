@@ -18,6 +18,7 @@
 #include "MultiVehicleManager.h"
 #include "QGCLoggingCategory.h"
 #include "QmlObjectListModel.h"
+#include "DataClass.h"
 
 Q_DECLARE_LOGGING_CATEGORY(PlanMasterControllerLog)
 
@@ -50,9 +51,11 @@ public:
     Q_PROPERTY(QString                  currentPlanFile         READ currentPlanFile                        NOTIFY currentPlanFileChanged)
     Q_PROPERTY(QStringList              loadNameFilters         READ loadNameFilters                        CONSTANT)                       ///< File filter list loading plan files
     Q_PROPERTY(QStringList              saveNameFilters         READ saveNameFilters                        CONSTANT)                       ///< File filter list saving plan files
+    Q_PROPERTY(QStringList              getAllPlans             READ getAllPlans                            CONSTANT)
     Q_PROPERTY(QmlObjectListModel*      planCreators            MEMBER _planCreators                        NOTIFY planCreatorsChanged)
-
-    /// Should be called immediately upon Component.onCompleted.
+    Q_PROPERTY(int                      selectedPlanIndex       READ selectedPlanIndex      WRITE setSelectedPlanIndex  NOTIFY selectedPlanIndexChanged)
+    Q_PROPERTY(bool                     permissionGranted       READ permissionGranted      WRITE setPermissionGranted NOTIFY permissionChanged)
+    /// Should be called immediately upon Component.onCompleted
     Q_INVOKABLE void start(void);
 
     /// Starts the controller using a single static active vehicle. Will not track global active vehicle changes.
@@ -72,10 +75,12 @@ public:
     ///     @param[in] filename Plan file to load
     static void sendPlanToVehicle(Vehicle* vehicle, const QString& filename);
 
+    void selectAndLoadPlan(unsigned long long int selectedPlanId);
     Q_INVOKABLE void loadFromVehicle(void);
     Q_INVOKABLE void sendToVehicle(void);
     Q_INVOKABLE void loadFromFile(const QString& filename);
-    Q_INVOKABLE void uploadPlanToServer();
+    Q_INVOKABLE void uploadPlanToServer(QString planName);
+    Q_INVOKABLE void createOperation(QString operationName, int operationType);
     Q_INVOKABLE void saveToCurrent();
     Q_INVOKABLE void saveToFile(const QString& filename);
     Q_INVOKABLE void saveToKml(const QString& filename);
@@ -96,8 +101,28 @@ public:
     QString     currentPlanFile (void) const { return _currentPlanFile; }
     QStringList loadNameFilters (void) const;
     QStringList saveNameFilters (void) const;
+    QStringList getAllPlans     (void) const;
     bool        isEmpty         (void) const;
-
+    void setSelectedPlanIndex(unsigned long long int index){
+        if(index!=m_planIndex){
+            m_planIndex = index;
+            setPermissionGranted(false);
+            selectAndLoadPlan(m_planIndex);
+            emit selectedPlanIndexChanged();
+        }
+    }
+    void setPermissionGranted(bool status){
+        if(status!=_permissionGranted){
+            _permissionGranted = status;
+            emit permissionChanged();
+        }
+    }
+    unsigned long long int selectedPlanIndex(){
+        return m_planIndex;
+    }
+    bool permissionGranted(){
+        return _permissionGranted;
+    }
     void        setFlyView(bool flyView) { _flyView = flyView; }
 
     QJsonDocument saveToJson    ();
@@ -120,8 +145,14 @@ signals:
     void planCreatorsChanged                (QmlObjectListModel* planCreators);
     void managerVehicleChanged              (Vehicle* managerVehicle);
     void promptForPlanUsageOnVehicleChange  (void);
+    void selectedPlanIndexChanged();
+    void permissionChanged();
+
+public slots:
+    void enableUploadButton();
 
 private slots:
+
     void _activeVehicleChanged      (Vehicle* activeVehicle);
     void _loadMissionComplete       (void);
     void _loadGeoFenceComplete      (void);
@@ -155,5 +186,7 @@ private:
     QmlObjectListModel*     _planCreators =             nullptr;
     DataClass* _dataClass;
     QString m_url;
+    unsigned long long int m_planIndex = 0;
+    bool _permissionGranted = false;
 
 };

@@ -15,10 +15,9 @@ void KeyRotationController::startKeyRotation(QString URL)
 
 bool KeyRotationController::fetchKeyFromDrone()
 {
-
     FTPManager* ftpManager = qgcApp()->toolbox()->multiVehicleManager()->activeVehicle()->ftpManager();
     connect(ftpManager, SIGNAL(downloadComplete(const QString& , const QString& )), this, SLOT(downloadComplete(const QString&, const QString&)));
-    if(!ftpManager->download(pathOnBoardForPublicKeyDownload + "/" + publicKeyFilename, pathOnSystemForDronePulicKeyStorage)){
+    if(!ftpManager->download(AerobridgeGlobals::pathOnBoardForPublicKeyDownload + AerobridgeGlobals::dronePublicKeyFilename, AerobridgeGlobals::pathOnSystemForPublicKeyStorage)){
         return false;
     }
     return true;
@@ -28,7 +27,7 @@ bool KeyRotationController::uploadKeyToServer()
 {
     uploading = true;
     DataClass* _dataClass = qgcApp()->getDataClass();
-    _dataClass->uploadKeyToServer(url, pathOnSystemForDronePulicKeyStorage + "/" + publicKeyFilename);
+    _dataClass->uploadDronePublicKeyToServer(url, AerobridgeGlobals::pathOnSystemForPublicKeyStorage + "/" + AerobridgeGlobals::dronePublicKeyFilename);
     return true;
 }
 

@@ -182,6 +182,101 @@ Item {
 
 
     Component {
+        id: promptForPlanUpload
+
+        QGCViewDialog {
+            property string message: qsTr("Enter Plan Name")
+
+            QGCFlickable {
+                anchors.fill:   parent
+                contentHeight:  label.contentHeight
+
+                QGCLabel {
+                    id:             label
+                    anchors.left:   parent.left
+                    anchors.right:  parent.right
+                    wrapMode:       Text.WordWrap
+                    text:           message
+                }
+
+                Rectangle{
+                    anchors.left:   parent.left
+                    anchors.right:  parent.right
+                    anchors.topMargin: 5
+                    anchors.top:    label.bottom
+                    height:         20
+                    color:          "white"
+
+                    TextInput{
+                        id: planFileName
+                        color: "black"
+                        wrapMode: Text.WordWrap
+                        font.pixelSize: 15
+                        text: "Plan A"
+                    }
+                }
+            }
+            function accept() {
+                _planMasterController.uploadPlanToServer(planFileName.text)
+                _planMasterController.removeAllFromVehicle()
+                _missionController.setCurrentPlanViewSeqNum(0, true)
+                hideDialog()
+            }
+        }
+    }
+
+    Component {
+        id: promptForOperationDetails
+
+        QGCViewDialog {
+            id: viewDialog
+
+            QGCFlickable {
+                id: flick
+                anchors.fill:   parent
+                contentHeight:  label.contentHeight
+                ColumnLayout {
+                    spacing: 3
+                    QGCLabel {
+                        id:             label
+                        wrapMode:       Text.WordWrap
+                        text:           "Enter Operation Name"
+                    }
+                    Rectangle{
+                        height:         20
+                        color:          "white"
+                        width:          viewDialog.width
+
+                        TextInput{
+                            id: name
+                            color: "black"
+                            wrapMode: Text.WordWrap
+                            font.pixelSize: 15
+                            text: "Operation A"
+                        }
+                    }
+                    QGCLabel {
+                        id:             label2
+                        wrapMode:       Text.WordWrap
+                        text:           "Operation Type"
+                    }
+                    ComboBox{
+                        id: modeofOperation
+                        model: ListModel {
+                              ListElement {text: "VLOS";}
+                              ListElement { text: "BVLOS"}
+                        }
+                    }
+                }
+            }
+            function accept() {
+                _planMasterController.createOperation(name.text, modeofOperation.currentIndex)
+                hideDialog()
+            }
+        }
+    }
+
+    Component {
         id: firmwareOrVehicleMismatchUploadDialogComponent
         QGCViewMessage {
             message: qsTr("This Plan was created for a different firmware or vehicle type than the firmware/vehicle type of vehicle you are uploading to. " +
@@ -980,6 +1075,7 @@ Item {
         QGCViewMessage {
             message: qsTr("Are you sure you want to remove all mission items and clear the mission from the vehicle?")
             function accept() {
+                _planMasterController.selectedPlanIndex = 0
                 _planMasterController.removeAllFromVehicle()
                 _missionController.setCurrentPlanViewSeqNum(0, true)
                 hideDialog()
@@ -1193,13 +1289,62 @@ Item {
                     Layout.columnSpan:  3
                     Layout.fillWidth:   true
                     text:               qsTr("Upload Plan File to Management Server")
-                    enabled:            !_planMasterController.syncInProgress
+                    enabled:            !_planMasterController.syncInProgress && _visualItems.count > 1
                     onClicked: {
                         dropPanel.hide()
-                       _planMasterController.uploadPlanToServer()
+                        mainWindow.showComponentDialog(promptForPlanUpload, qsTr("Plan Upload"), mainWindow.showDialogDefaultWidth, StandardButton.Ok | StandardButton.Cancel)
+                    }
+                }
+            }
+
+            SectionHeader {
+                id:                 guardianSection
+                Layout.fillWidth:   true
+                text:               qsTr("Guardian")
+            }
+
+            GridLayout{
+                columns:            3
+                rowSpacing:         _margin
+                columnSpacing:      ScreenTools.defaultFontPixelWidth
+                visible:            storageSection.visible
+
+                QGCLabel {
+                    id:                     planSelectionLabel
+                    Layout.fillWidth:       true
+                    wrapMode:               Text.WordWrap
+                    text:                   "Pick a Plan"
+                    color:                  "white"
+                }
+
+                ComboBox {
+                    id:             displayAllPlans
+                    model:          _planMasterController.getAllPlans
+                    currentIndex:   _planMasterController.selectedPlanIndex
+                    onCurrentIndexChanged: {
+                        if( displayAllPlans.currentIndex == 0 && _planMasterController.selectedPlanIndex!=0){
+                            _planMasterController.removeAllFromVehicle();
+                            _missionController.setCurrentPlanViewSeqNum(0, true);
+                        }
+                        if(_planMasterController.selectedPlanIndex != displayAllPlans.currentIndex){
+                            _planMasterController.selectedPlanIndex = displayAllPlans.currentIndex;
+                            mapFitFunctions.fitMapViewportToMissionItems()
+                        }
+                    }
+                }
+
+                QGCButton {
+                    Layout.columnSpan:  3
+                    Layout.fillWidth:   true
+                    text:               qsTr("Create Operation and Get Permission")
+                    enabled:            !_planMasterController.syncInProgress && displayAllPlans.currentIndex
+                    onClicked: {
+                        dropPanel.hide()
+                        mainWindow.showComponentDialog(promptForOperationDetails, qsTr("Create Operation"), mainWindow.showDialogDefaultWidth, StandardButton.Ok | StandardButton.Cancel)
 
                     }
                 }
+
             }
 
             SectionHeader {
@@ -1216,7 +1361,7 @@ Item {
                 QGCButton {
                     text:               qsTr("Upload")
                     Layout.fillWidth:   true
-                    enabled:            !_planMasterController.offline && !_planMasterController.syncInProgress && _planMasterController.containsItems
+                    enabled:            !_planMasterController.offline && !_planMasterController.syncInProgress && _planMasterController.containsItems && _planMasterController.permissionGranted
                     visible:            !QGroundControl.corePlugin.options.disableVehicleConnection
                     onClicked: {
                         dropPanel.hide()

@@ -6,22 +6,25 @@
 #include "QDebug"
 #include "QStandardPaths"
 
-///List of supported FlightControllers
-static QStringList supportedflightControllers = { "PX4v", "Pixhawk", "fmuv", "CubeOrange", "CUAV"};
+namespace AerobridgeGlobals {
 
-///API end-points
-/// For more information visit: https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/openskies-sh/aerobridge/master/api/aerobridge-1.0.0.resolved.yaml
-static QString checkDroneStatusUrl= "registry/aircraft/rfm/";
-static QString uploadPublicKeyUrl = "pki/credentials/";
-static QString uploadFlightPlanUrl = "gcs/flight-plans";
+    const QStringList supportedflightControllers = { "PX4v", "Pixhawk", "fmuv", "CubeOrange", "CUAV"};
+    const QString checkDroneStatusUrl= "registry/aircraft/rfm/";
+    const QString uploadPublicKeyUrl = "pki/credentials/";
+    const QString uploadFlightPlanUrl = "gcs/flight-plans";
+    const QString getAllActivitiesUrl = "registry/activities";
+    const QString getAllFlightPlansUrl = "gcs/flight-plans";
+    const QString getAllOperatorsUrl = "registry/operators";
+    const QString getAllPilotsUrl = "registry/pilots";
+    const QString createFlightOperationUrl = "gcs/flight-operations";
+    const QString getFlightPermissionUrl = "gcs/flight-operations/%1/permission";
+    const QString pathOnBoardForPublicKeyDownload = "APM/";
+    const QString dronePublicKeyFilename = "dronePublicKey.pem";
+    const QString pathOnSystemForPublicKeyStorage = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    const QString configFileName = "config.xml";
+    const QString jwtTokenIssuerUrl = "https://id.openskies.sh/";
+    const int checkDeviceConnectedTimerDuration = 500;
+    const int checkDroneStatusTimerDuration =  5000;
 
-///PATHS AND FILENAMES
-static QString pathOnBoardForPublicKeyDownload = "APM";
-static QString publicKeyFilename = "key.pem";
-static QString pathOnSystemForDronePulicKeyStorage = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-static QString configFileName = "config.xml";
-
-static QString checkDeviceConnectedTimerDuration = "500";
-static QString checkDroneStatusTimerDuration =  "5000";
-
+}
 #endif // DICTIONARY_H

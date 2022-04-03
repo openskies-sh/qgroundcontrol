@@ -46,9 +46,9 @@ PlanMasterController::PlanMasterController(QObject* parent)
     , _geoFenceController   (this)
     , _rallyPointController (this)
 {
-    _commonInit();
     _dataClass              = qgcApp()->getDataClass();
     m_url                   = qgcApp()->getDataClass()->getURL();
+    _commonInit();
 }
 
 #ifdef QT_DEBUG
@@ -81,6 +81,8 @@ void PlanMasterController::_commonInit(void)
 
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
+
+    connect(_dataClass, SIGNAL(permissionGranted()), this, SLOT(enableUploadButton()));
 }
 
 PlanMasterController::~PlanMasterController()
@@ -436,7 +438,7 @@ void PlanMasterController::loadFromFile(const QString& filename)
     }
 }
 
-void PlanMasterController::uploadPlanToServer()
+void PlanMasterController::uploadPlanToServer(QString planName)
 {
     QJsonObject planJson;
     qgcApp()->toolbox()->corePlugin()->preSaveToJson(this, planJson);
@@ -455,8 +457,12 @@ void PlanMasterController::uploadPlanToServer()
     planJson[kJsonGeoFenceObjectKey] = fenceJson;
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
+    _dataClass->uploadPlanToServer(m_url+ AerobridgeGlobals::uploadFlightPlanUrl, planJson, planName);
+}
 
-    _dataClass->uploadPlanToServer(m_url+ uploadFlightPlanUrl, planJson);
+void PlanMasterController::createOperation(QString operationName, int operationType)
+{
+    _dataClass->createFlightOperation(operationName, m_planIndex-1, operationType);
 }
 
 QJsonDocument PlanMasterController::saveToJson()
@@ -479,6 +485,10 @@ QJsonDocument PlanMasterController::saveToJson()
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     qgcApp()->toolbox()->corePlugin()->postSaveToJson(this, planJson);
     return QJsonDocument(planJson);
+}
+
+void PlanMasterController::enableUploadButton(){
+    setPermissionGranted(true);
 }
 
 void
@@ -557,6 +567,7 @@ void PlanMasterController::removeAll(void)
         _currentPlanFile.clear();
         emit currentPlanFileChanged();
     }
+
 }
 
 void PlanMasterController::removeAllFromVehicle(void)
@@ -620,6 +631,13 @@ QStringList PlanMasterController::saveNameFilters(void) const
     return filters;
 }
 
+QStringList PlanMasterController::getAllPlans() const
+{
+      QStringList allPlans = qgcApp()->getDataClass()->getAllPlans();
+      allPlans.push_front("No plan selected");
+      return allPlans;
+}
+
 void PlanMasterController::sendPlanToVehicle(Vehicle* vehicle, const QString& filename)
 {
     // Use a transient PlanMasterController to accomplish this
@@ -627,6 +645,50 @@ void PlanMasterController::sendPlanToVehicle(Vehicle* vehicle, const QString& fi
     controller->startStaticActiveVehicle(vehicle, true /* deleteWhenSendCompleted */);
     controller->loadFromFile(filename);
     controller->sendToVehicle();
+}
+
+void PlanMasterController::selectAndLoadPlan(unsigned long long int selectedPlanIndex)
+{
+    if(selectedPlanIndex == 0){
+        return;
+    }
+    QString errorString;
+    QString errorMessage = tr("Error loading plan file (%1). %2").arg(getAllPlans()[selectedPlanIndex - 1]).arg("%1");
+    QJsonObject json = _dataClass->getSelectedPlan(selectedPlanIndex - 1);
+    if(json.length()==0){
+        return;
+    }
+    else {
+            //-- Allow plugins to pre process the load
+            qgcApp()->toolbox()->corePlugin()->preLoadFromJson(this, json);
+
+            QList<JsonHelper::KeyValidateInfo> rgKeyInfo = {
+                { kJsonMissionObjectKey,        QJsonValue::Object, true },
+                { kJsonGeoFenceObjectKey,       QJsonValue::Object, true },
+                { kJsonRallyPointsObjectKey,    QJsonValue::Object, true },
+            };
+
+            if (!JsonHelper::validateKeys(json, rgKeyInfo, errorString)) {
+                qgcApp()->showAppMessage(errorMessage.arg(errorString));
+                return;
+            }
+
+            if (!_missionController.load(json[kJsonMissionObjectKey].toObject(), errorString) ||
+                    !_geoFenceController.load(json[kJsonGeoFenceObjectKey].toObject(), errorString) ||
+                    !_rallyPointController.load(json[kJsonRallyPointsObjectKey].toObject(), errorString)) {
+                qgcApp()->showAppMessage(errorMessage.arg(errorString));
+            } else {
+                //-- Allow plugins to post process the load
+                qgcApp()->toolbox()->corePlugin()->postLoadFromJson(this, json);
+            }
+        }
+
+        emit currentPlanFileChanged();
+
+        if (!offline()) {
+            setDirty(true);
+        }
+
 }
 
 void PlanMasterController::_showPlanFromManagerVehicle(void)

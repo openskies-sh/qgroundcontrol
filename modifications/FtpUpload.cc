@@ -22,5 +22,5 @@ void FTPUpload::uploadFile(QString path)
             fileName.push_front(*it);
         }
     }
-    qgcApp()->toolbox()->multiVehicleManager()->activeVehicle()->ftpManager()->upload(QString("APM/%1").arg(fileName), path);
+    qgcApp()->toolbox()->multiVehicleManager()->activeVehicle()->ftpManager()->upload(AerobridgeGlobals::pathOnBoardForPublicKeyDownload + QString("%1").arg(fileName), path);
 }
