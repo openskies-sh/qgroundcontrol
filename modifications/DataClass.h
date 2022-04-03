@@ -31,7 +31,7 @@ public:
         return allPlans;
     }
     QJsonObject getSelectedPlan(int selectedPlanIndex){
-        if(selectedPlanIndex<flightData.length()){
+        if(selectedPlanIndex< flightData.length()){
             return flightData[selectedPlanIndex].plan;
         }
         return QJsonObject();

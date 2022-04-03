@@ -56,8 +56,6 @@ void DataClass::showMessage(QString msg, int errorCode)
     msgBox.exec();
 }
 
-//API CALLS START
-//*******************************************************************************************************************************************************************************
 //TOKEN REQUEST
 void DataClass::generateToken()
 {
@@ -82,10 +80,10 @@ void DataClass::readyReadToken()
         }
     }else{
         emit tokenNotGenerated();
-        showMessage("Unable to Connect to Server", statusCode);
+        showMessage("Unable to connect to server", statusCode);
     }
 }
-//*******************************************************************************************************************************************************************************
+
 //DRONE STATUS CHECK
 void DataClass::checkDroneStatus(QString location)
 {
@@ -113,7 +111,7 @@ void DataClass::readyReadDroneStatus()
             emit droneActive();
         }else{
             emit droneNotActive();
-            showMessage("Drone Not Active", -1);
+            showMessage("Drone not active", -1);
         }
     }else if(statusCode == 404){
         showMessage("The drone is not registered", -1);
@@ -122,7 +120,7 @@ void DataClass::readyReadDroneStatus()
         showMessage("Unable to Connect to Server", statusCode);
     }
 }
-//*******************************************************************************************************************************************************************************
+
 //DRONE PUBLIC KEY ROTATION
 void DataClass::uploadDronePublicKeyToServer(QString location, QString pathOfKey)
 {
@@ -160,11 +158,11 @@ void DataClass::readyReadUploadDronePublicKeyToServer()
         emit keyUploadSuccessful();
         getServerPublicKey();
     }else{
-        showMessage("Unable to Upload Drone Public Key to Server", statusCode);
+        showMessage("Unable to upload drone public key to server", statusCode);
         emit keyUploadFailed();
     }
 }
-//*******************************************************************************************************************************************************************************
+
 //SERVER PUBLIC KEY ROTATION
 void DataClass::getServerPublicKey()
 {
@@ -199,15 +197,15 @@ void DataClass::readyReadGetServerPublicKey()
             getAllOperators();
             getAllPilots();
         }else{
-            showMessage("Unable to Fetch Public Key of Server", -1);
+            showMessage("Unable to fetch public key of server", -1);
             emit serverPublicKeyDownloadFailed();
         }
     }else{
-        showMessage("Unable to Fetch Public Key of Server", statusCode);
+        showMessage("Unable to fetch public key of server", statusCode);
         emit serverPublicKeyDownloadFailed();
     }
 }
-//*******************************************************************************************************************************************************************************
+
 // UPLOAD FLIGHT PLAN
 void DataClass::uploadPlanToServer(QString location, QJsonObject plan, QString planName){
 
@@ -238,15 +236,15 @@ void DataClass::readyReadFlightPlan()
     if(statusCode == 201 || statusCode == 200){
         QJsonDocument jsonReply = QJsonDocument::fromJson(replyStr.toUtf8());
         QJsonObject jsonObjectReply = jsonReply.object();
-        showMessage("Flight Plan Uploaded Successfully", -1);
+        showMessage("Flight plan uploaded successfully", -1);
         emit planUploadSuccessful();
         getAllFlightPlans();
     }else{
-        showMessage("Unable to Upload Flight Plan", statusCode);
+        showMessage("Unable to upload flight plan", statusCode);
         emit planUploadFailed();
     }
 }
-//*******************************************************************************************************************************************************************************
+
 // GET ALL FLIGHT PLANS
 void DataClass::getAllFlightPlans()
 {
@@ -280,7 +278,7 @@ void DataClass::readyReadAllFlightPlans()
         showMessage("Unable to get flight plans from management server", statusCode);
     }
 }
-//*******************************************************************************************************************************************************************************
+
 void DataClass::getAllActivities()
 {
     QString location = serverUrl + AerobridgeGlobals::getAllActivitiesUrl;
@@ -310,7 +308,7 @@ void DataClass::readyReadAllActivities()
         showMessage("Unable to get activites from management server", statusCode);
     }
 }
-//*******************************************************************************************************************************************************************************
+
 // GET ALL OPERATORS
 void DataClass::getAllOperators()
 {
@@ -341,7 +339,7 @@ void DataClass::readyReadAllOperators()
         showMessage("Unable to get operators from management server", statusCode);
     }
 }
-//*******************************************************************************************************************************************************************************
+
 // GET ALL PILOTS
 void DataClass::getAllPilots()
 {
@@ -372,7 +370,7 @@ void DataClass::readyReadAllPilots()
         showMessage("Unable to get pilots from management server", statusCode);
     }
 }
-//*******************************************************************************************************************************************************************************
+
 //CREATE FLIGHT OPERATION
 void DataClass::createFlightOperation(QString operationName, int planIndex, int operationType)
 {
@@ -412,15 +410,15 @@ void DataClass::readyReadCreateFlightOperation()
         if(!jsonObj.empty()){
             flightOperationID = jsonObj["id"].toString();
             emit createFlightOperationSuccessful();
-            showMessage("Flight Operation Created\nWaiting for Clearance from the Management Server", -1);
+            showMessage("Flight operation created\nWaiting for clearance from the management server", -1);
             getFlightPermission();
         }else{
              emit createFlightOperationFailed();
-             showMessage("Unable to Create Flight Operation", statusCode);
+             showMessage("Unable to create flight operation", statusCode);
         }
     }
 }
-//*******************************************************************************************************************************************************************************
+
 void DataClass::getFlightPermission()
 {
     QString location = serverUrl + AerobridgeGlobals::getFlightPermissionUrl.arg(flightOperationID);
@@ -447,24 +445,23 @@ void DataClass::readyReadGetFlightPermission()
         if(!jsonObj.empty()){
             QString permissionStatus = jsonObj["status_code"].toString();
             if((permissionStatus == "denied")||(permissionStatus == "pending")){
-                showMessage("Response: Not Permitted to Fly. Try Again Later",-1);
+                showMessage("Response: Not permitted to fly. Try again later",-1);
                 return;
             }
             QString signature = jsonObj["token"].toObject()["access_token"].toString();
             if(SignatureVerifier::verifyJWT(signature.toStdString(),serverPublicKey) == 0){
                  emit permissionGranted();
-                 showMessage("Response: Permission Granted",-1);
+                 showMessage("Response: Permission granted",-1);
             }
             else{
-               showMessage("Signature Not Verified",-1);
+               showMessage("Signature not verified",-1);
             }
         }
     }else{
         showMessage("Unable to get flight permission",statusCode);
     }
 }
-//*******************************************************************************************************************************************************************************
-//API CALLS END
+
 void DataClass::addToFlightData(QJsonObject obj)
 {
     FlightData data;

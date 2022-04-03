@@ -41,7 +41,7 @@ import QGroundControl 1.0
                     CheckBox {
                         id: c1
                         checked:myrect.hardwareConnected
-                        text: qsTr("Connecting to the Flight Controller")
+                        text: qsTr("Connected to the Flight Controller")
                         font.pixelSize: (rect1.width/25 + rect1.height/25 )/2
                         checkable:false
                         indicator.width:rect1.width/20

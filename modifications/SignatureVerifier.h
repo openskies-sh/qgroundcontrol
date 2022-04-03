@@ -13,6 +13,7 @@
 #include <openssl/pkcs12.h>
 #include <jwt-cpp/jwt-cpp/jwt.h>
 #include "cppcodec/base64_url_unpadded.hpp"
+#include <GlobalDictionary.h>
 
 namespace SignatureVerifier {
     bool convertJwkToPem(const std::string &strnn, const std::string& stree, const std::string& kid, std::string& strPubKey);

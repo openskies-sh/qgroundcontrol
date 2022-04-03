@@ -22,6 +22,7 @@ namespace AerobridgeGlobals {
     const QString dronePublicKeyFilename = "dronePublicKey.pem";
     const QString pathOnSystemForPublicKeyStorage = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     const QString configFileName = "config.xml";
+    const QString jwtTokenIssuerUrl = "https://id.openskies.sh/";
     const int checkDeviceConnectedTimerDuration = 500;
     const int checkDroneStatusTimerDuration =  5000;
 

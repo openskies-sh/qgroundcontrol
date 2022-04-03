@@ -35,7 +35,7 @@ int SignatureVerifier::verifyJWT(const std::string &strJwtToken, const std::stri
 {         
     std::error_code c;
     try {
-        auto verify = jwt::verify().allow_algorithm(jwt::algorithm::rs256(strPubKey)).with_issuer("https://id.openskies.sh/");
+        auto verify = jwt::verify().allow_algorithm(jwt::algorithm::rs256(strPubKey)).with_issuer(AerobridgeGlobals::jwtTokenIssuerUrl.toStdString());
         auto decoded = jwt::decode(strJwtToken);
         verify.verify(decoded, c);
     }

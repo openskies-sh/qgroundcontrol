@@ -75,7 +75,7 @@ public:
     ///     @param[in] filename Plan file to load
     static void sendPlanToVehicle(Vehicle* vehicle, const QString& filename);
 
-    void selectAndLoadPlan(int selectedPlanId);
+    void selectAndLoadPlan(unsigned long long int selectedPlanId);
     Q_INVOKABLE void loadFromVehicle(void);
     Q_INVOKABLE void sendToVehicle(void);
     Q_INVOKABLE void loadFromFile(const QString& filename);
@@ -103,7 +103,7 @@ public:
     QStringList saveNameFilters (void) const;
     QStringList getAllPlans     (void) const;
     bool        isEmpty         (void) const;
-    void setSelectedPlanIndex(int index){
+    void setSelectedPlanIndex(unsigned long long int index){
         if(index!=m_planIndex){
             m_planIndex = index;
             setPermissionGranted(false);
@@ -117,7 +117,7 @@ public:
             emit permissionChanged();
         }
     }
-    int selectedPlanIndex(){
+    unsigned long long int selectedPlanIndex(){
         return m_planIndex;
     }
     bool permissionGranted(){
@@ -186,7 +186,7 @@ private:
     QmlObjectListModel*     _planCreators =             nullptr;
     DataClass* _dataClass;
     QString m_url;
-    int m_planIndex = 0;
+    unsigned long long int m_planIndex = 0;
     bool _permissionGranted = false;
 
 };

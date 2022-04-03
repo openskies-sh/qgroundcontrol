@@ -634,7 +634,7 @@ QStringList PlanMasterController::saveNameFilters(void) const
 QStringList PlanMasterController::getAllPlans() const
 {
       QStringList allPlans = qgcApp()->getDataClass()->getAllPlans();
-      allPlans.push_front("No Plan Selected");
+      allPlans.push_front("No plan selected");
       return allPlans;
 }
 
@@ -647,13 +647,13 @@ void PlanMasterController::sendPlanToVehicle(Vehicle* vehicle, const QString& fi
     controller->sendToVehicle();
 }
 
-void PlanMasterController::selectAndLoadPlan(int selectedPlanIndex)
+void PlanMasterController::selectAndLoadPlan(unsigned long long int selectedPlanIndex)
 {
     if(selectedPlanIndex == 0){
         return;
     }
     QString errorString;
-    QString errorMessage = tr("Error loading Plan file (%1). %2").arg(getAllPlans()[selectedPlanIndex - 1]).arg("%1");
+    QString errorMessage = tr("Error loading plan file (%1). %2").arg(getAllPlans()[selectedPlanIndex - 1]).arg("%1");
     QJsonObject json = _dataClass->getSelectedPlan(selectedPlanIndex - 1);
     if(json.length()==0){
         return;
